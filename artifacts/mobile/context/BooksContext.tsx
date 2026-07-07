@@ -26,6 +26,7 @@ interface BooksContextType {
   addBook: (title: string, author: string, status: BookStatus) => void;
   moveBook: (id: string, newStatus: BookStatus) => void;
   deleteBook: (id: string) => void;
+  updateDates: (id: string, fields: { startedReadingAt?: number; finishedAt?: number }) => void;
   isLoading: boolean;
 }
 
@@ -108,9 +109,22 @@ export function BooksProvider({ children }: { children: React.ReactNode }) {
     [persist],
   );
 
+  const updateDates = useCallback(
+    (id: string, fields: { startedReadingAt?: number; finishedAt?: number }) => {
+      setBooks((prev) => {
+        const next = prev.map((b) =>
+          b.id === id ? { ...b, ...fields } : b,
+        );
+        persist(next);
+        return next;
+      });
+    },
+    [persist],
+  );
+
   return (
     <BooksContext.Provider
-      value={{ books, addBook, moveBook, deleteBook, isLoading }}
+      value={{ books, addBook, moveBook, deleteBook, updateDates, isLoading }}
     >
       {children}
     </BooksContext.Provider>
