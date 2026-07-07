@@ -1,6 +1,6 @@
-# [Project name]
+# Book Tracker
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A personal iOS mobile app for tracking books across three lists: Want to Read, Currently Reading, and Finished.
 
 ## Run & Operate
 
