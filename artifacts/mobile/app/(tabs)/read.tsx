@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   FlatList,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -14,19 +15,69 @@ import { useBooks } from '@/context/BooksContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
 
+interface MonthYear {
+  month: number; // 0-based
+  year: number;
+  label: string;
+}
+
+function buildKey(month: number, year: number) {
+  return `${year}-${month}`;
+}
+
 export default function ReadScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { books } = useBooks();
   const [modalVisible, setModalVisible] = useState(false);
+  const [filter, setFilter] = useState<MonthYear | null>(null);
 
-  const list = books.filter((b) => b.status === 'read');
+  const allRead = books.filter((b) => b.status === 'read');
+
+  // Derive sorted unique month+year chips from finishedAt
+  const chips = useMemo<MonthYear[]>(() => {
+    const seen = new Map<string, MonthYear>();
+    for (const b of allRead) {
+      if (b.finishedAt == null) continue;
+      const d = new Date(b.finishedAt);
+      const m = d.getMonth();
+      const y = d.getFullYear();
+      const key = buildKey(m, y);
+      if (!seen.has(key)) {
+        seen.set(key, {
+          month: m,
+          year: y,
+          label: d.toLocaleDateString(undefined, { month: 'short', year: 'numeric' }),
+        });
+      }
+    }
+    // Sort newest first
+    return Array.from(seen.values()).sort(
+      (a, b) => b.year - a.year || b.month - a.month,
+    );
+  }, [allRead]);
+
+  // Apply filter
+  const list = useMemo(() => {
+    if (!filter) return allRead;
+    return allRead.filter((b) => {
+      if (b.finishedAt == null) return false;
+      const d = new Date(b.finishedAt);
+      return d.getMonth() === filter.month && d.getFullYear() === filter.year;
+    });
+  }, [allRead, filter]);
 
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
 
+  const handleChipPress = (chip: MonthYear) => {
+    const key = buildKey(chip.month, chip.year);
+    const activeKey = filter ? buildKey(filter.month, filter.year) : null;
+    setFilter(key === activeKey ? null : chip);
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Custom Header */}
+      {/* Header */}
       <View
         style={[
           styles.header,
@@ -42,7 +93,8 @@ export default function ReadScreen() {
             Finished
           </Text>
           <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>
-            {list.length} {list.length === 1 ? 'book' : 'books'} read
+            {list.length} {list.length === 1 ? 'book' : 'books'}
+            {filter ? ` in ${filter.label}` : ' read'}
           </Text>
         </View>
         <TouchableOpacity
@@ -53,6 +105,57 @@ export default function ReadScreen() {
           <Ionicons name="add" size={22} color={colors.primaryForeground} />
         </TouchableOpacity>
       </View>
+
+      {/* Month/year filter chips */}
+      {chips.length > 0 && (
+        <View style={[styles.filterBar, { borderBottomColor: colors.border }]}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterScroll}
+          >
+            {chips.map((chip) => {
+              const active =
+                filter != null &&
+                buildKey(chip.month, chip.year) ===
+                  buildKey(filter.month, filter.year);
+              return (
+                <TouchableOpacity
+                  key={buildKey(chip.month, chip.year)}
+                  style={[
+                    styles.chip,
+                    {
+                      backgroundColor: active
+                        ? colors.primary
+                        : colors.card,
+                      borderColor: active ? colors.primary : colors.border,
+                    },
+                  ]}
+                  onPress={() => handleChipPress(chip)}
+                  activeOpacity={0.75}
+                >
+                  {active && (
+                    <Ionicons
+                      name="checkmark"
+                      size={12}
+                      color={colors.primaryForeground}
+                      style={styles.chipCheck}
+                    />
+                  )}
+                  <Text
+                    style={[
+                      styles.chipLabel,
+                      { color: active ? colors.primaryForeground : colors.foreground },
+                    ]}
+                  >
+                    {chip.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
 
       <FlatList
         data={list}
@@ -73,13 +176,26 @@ export default function ReadScreen() {
               color={colors.mutedForeground}
             />
             <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
-              No books finished yet
+              {filter ? `No books in ${filter.label}` : 'No books finished yet'}
             </Text>
             <Text
               style={[styles.emptySubtitle, { color: colors.mutedForeground }]}
             >
-              Books you finish will appear here
+              {filter
+                ? 'Try a different month or clear the filter'
+                : 'Books you finish will appear here'}
             </Text>
+            {filter && (
+              <TouchableOpacity
+                style={[styles.clearBtn, { borderColor: colors.border }]}
+                onPress={() => setFilter(null)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.clearBtnLabel, { color: colors.foreground }]}>
+                  Clear filter
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
         }
       />
@@ -122,6 +238,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // ── Filter bar ───────────────────────────────────────────
+  filterBar: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  filterScroll: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  chip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingVertical: 5,
+    paddingHorizontal: 12,
+    gap: 4,
+  },
+  chipCheck: {
+    marginRight: 2,
+  },
+  chipLabel: {
+    fontSize: 13,
+    fontFamily: 'Inter_500Medium',
+  },
+  // ── List ────────────────────────────────────────────────
   listContent: {
     paddingTop: 12,
   },
@@ -145,5 +288,16 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     textAlign: 'center',
     paddingHorizontal: 32,
+  },
+  clearBtn: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingVertical: 7,
+    paddingHorizontal: 20,
+  },
+  clearBtnLabel: {
+    fontSize: 14,
+    fontFamily: 'Inter_500Medium',
   },
 });
