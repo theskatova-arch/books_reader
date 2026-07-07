@@ -15,10 +15,6 @@ export interface Book {
   author: string;
   status: BookStatus;
   addedAt: number;
-  /** Page the reader is currently on (Currently Reading only) */
-  currentPage?: number;
-  /** Total number of pages in the book */
-  totalPages?: number;
 }
 
 interface BooksContextType {
@@ -26,7 +22,6 @@ interface BooksContextType {
   addBook: (title: string, author: string, status: BookStatus) => void;
   moveBook: (id: string, newStatus: BookStatus) => void;
   deleteBook: (id: string) => void;
-  updateProgress: (id: string, currentPage: number, totalPages?: number) => void;
   isLoading: boolean;
 }
 
@@ -94,29 +89,9 @@ export function BooksProvider({ children }: { children: React.ReactNode }) {
     [persist],
   );
 
-  const updateProgress = useCallback(
-    (id: string, currentPage: number, totalPages?: number) => {
-      setBooks((prev) => {
-        const next = prev.map((b) =>
-          b.id === id
-            ? {
-                ...b,
-                currentPage,
-                totalPages:
-                  totalPages !== undefined ? totalPages : b.totalPages,
-              }
-            : b,
-        );
-        persist(next);
-        return next;
-      });
-    },
-    [persist],
-  );
-
   return (
     <BooksContext.Provider
-      value={{ books, addBook, moveBook, deleteBook, updateProgress, isLoading }}
+      value={{ books, addBook, moveBook, deleteBook, isLoading }}
     >
       {children}
     </BooksContext.Provider>
