@@ -2,7 +2,6 @@ import React, { useMemo, useState } from 'react';
 import {
   FlatList,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -14,47 +13,36 @@ import { useColors } from '@/hooks/useColors';
 import { useBooks } from '@/context/BooksContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
+import { MonthYearPickerModal } from '@/components/MonthYearPickerModal';
 
-interface MonthYear {
+const MONTHS_SHORT = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
+
+interface ActiveFilter {
   month: number; // 0-based
   year: number;
-  label: string;
-}
-
-function buildKey(month: number, year: number) {
-  return `${year}-${month}`;
 }
 
 export default function ReadScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { books } = useBooks();
+
   const [modalVisible, setModalVisible] = useState(false);
-  const [filter, setFilter] = useState<MonthYear | null>(null);
+  const [pickerVisible, setPickerVisible] = useState(false);
+  const [filter, setFilter] = useState<ActiveFilter | null>(null);
 
   const allRead = books.filter((b) => b.status === 'read');
 
-  // Derive sorted unique month+year chips from finishedAt
-  const chips = useMemo<MonthYear[]>(() => {
-    const seen = new Map<string, MonthYear>();
+  // Years that have at least one finished book with a date, newest first
+  const availableYears = useMemo(() => {
+    const set = new Set<number>();
     for (const b of allRead) {
-      if (b.finishedAt == null) continue;
-      const d = new Date(b.finishedAt);
-      const m = d.getMonth();
-      const y = d.getFullYear();
-      const key = buildKey(m, y);
-      if (!seen.has(key)) {
-        seen.set(key, {
-          month: m,
-          year: y,
-          label: d.toLocaleDateString(undefined, { month: 'short', year: 'numeric' }),
-        });
-      }
+      if (b.finishedAt != null) set.add(new Date(b.finishedAt).getFullYear());
     }
-    // Sort newest first
-    return Array.from(seen.values()).sort(
-      (a, b) => b.year - a.year || b.month - a.month,
-    );
+    return Array.from(set).sort((a, b) => b - a);
   }, [allRead]);
 
   // Apply filter
@@ -69,11 +57,9 @@ export default function ReadScreen() {
 
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
 
-  const handleChipPress = (chip: MonthYear) => {
-    const key = buildKey(chip.month, chip.year);
-    const activeKey = filter ? buildKey(filter.month, filter.year) : null;
-    setFilter(key === activeKey ? null : chip);
-  };
+  const filterLabel = filter
+    ? `${MONTHS_SHORT[filter.month]} ${filter.year}`
+    : null;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
@@ -88,74 +74,51 @@ export default function ReadScreen() {
           },
         ]}
       >
-        <View>
+        <View style={styles.headerLeft}>
           <Text style={[styles.headerTitle, { color: colors.foreground }]}>
             Finished
           </Text>
           <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>
             {list.length} {list.length === 1 ? 'book' : 'books'}
-            {filter ? ` in ${filter.label}` : ' read'}
+            {filter ? ` in ${filterLabel}` : ' read'}
           </Text>
         </View>
-        <TouchableOpacity
-          style={[styles.addBtn, { backgroundColor: colors.primary }]}
-          onPress={() => setModalVisible(true)}
-          activeOpacity={0.85}
-        >
-          <Ionicons name="add" size={22} color={colors.primaryForeground} />
-        </TouchableOpacity>
-      </View>
 
-      {/* Month/year filter chips */}
-      {chips.length > 0 && (
-        <View style={[styles.filterBar, { borderBottomColor: colors.border }]}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterScroll}
+        <View style={styles.headerRight}>
+          {/* Filter button */}
+          <TouchableOpacity
+            style={[
+              styles.filterBtn,
+              {
+                backgroundColor: filter ? colors.primary : colors.card,
+                borderColor: filter ? colors.primary : colors.border,
+              },
+            ]}
+            onPress={() => setPickerVisible(true)}
+            activeOpacity={0.8}
           >
-            {chips.map((chip) => {
-              const active =
-                filter != null &&
-                buildKey(chip.month, chip.year) ===
-                  buildKey(filter.month, filter.year);
-              return (
-                <TouchableOpacity
-                  key={buildKey(chip.month, chip.year)}
-                  style={[
-                    styles.chip,
-                    {
-                      backgroundColor: active
-                        ? colors.primary
-                        : colors.card,
-                      borderColor: active ? colors.primary : colors.border,
-                    },
-                  ]}
-                  onPress={() => handleChipPress(chip)}
-                  activeOpacity={0.75}
-                >
-                  {active && (
-                    <Ionicons
-                      name="checkmark"
-                      size={12}
-                      color={colors.primaryForeground}
-                      style={styles.chipCheck}
-                    />
-                  )}
-                  <Text
-                    style={[
-                      styles.chipLabel,
-                      { color: active ? colors.primaryForeground : colors.foreground },
-                    ]}
-                  >
-                    {chip.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+            <Ionicons
+              name={filter ? 'funnel' : 'funnel-outline'}
+              size={14}
+              color={filter ? colors.primaryForeground : colors.foreground}
+            />
+            {filterLabel && (
+              <Text style={[styles.filterBtnLabel, { color: colors.primaryForeground }]}>
+                {filterLabel}
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Add button */}
+          <TouchableOpacity
+            style={[styles.addBtn, { backgroundColor: colors.primary }]}
+            onPress={() => setModalVisible(true)}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="add" size={22} color={colors.primaryForeground} />
+          </TouchableOpacity>
         </View>
-      )}
+      </View>
 
       <FlatList
         data={list}
@@ -171,18 +134,18 @@ export default function ReadScreen() {
         ListEmptyComponent={
           <View style={styles.emptyState}>
             <Ionicons
-              name="checkmark-circle-outline"
+              name={filter ? 'funnel-outline' : 'checkmark-circle-outline'}
               size={52}
               color={colors.mutedForeground}
             />
             <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
-              {filter ? `No books in ${filter.label}` : 'No books finished yet'}
-            </Text>
-            <Text
-              style={[styles.emptySubtitle, { color: colors.mutedForeground }]}
-            >
               {filter
-                ? 'Try a different month or clear the filter'
+                ? `No books in ${filterLabel}`
+                : 'No books finished yet'}
+            </Text>
+            <Text style={[styles.emptySubtitle, { color: colors.mutedForeground }]}>
+              {filter
+                ? 'Try a different month or year'
                 : 'Books you finish will appear here'}
             </Text>
             {filter && (
@@ -205,14 +168,28 @@ export default function ReadScreen() {
         onClose={() => setModalVisible(false)}
         targetStatus="read"
       />
+
+      <MonthYearPickerModal
+        visible={pickerVisible}
+        initialMonth={filter?.month ?? null}
+        initialYear={filter?.year ?? null}
+        availableYears={availableYears}
+        onConfirm={(month, year) => {
+          setFilter({ month, year });
+          setPickerVisible(false);
+        }}
+        onClear={() => {
+          setFilter(null);
+          setPickerVisible(false);
+        }}
+        onCancel={() => setPickerVisible(false)}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -220,6 +197,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingBottom: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  headerLeft: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: 26,
@@ -231,6 +211,24 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_400Regular',
     marginTop: 2,
   },
+  headerRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  filterBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    height: 36,
+    paddingHorizontal: 12,
+    borderRadius: 18,
+    borderWidth: 1,
+  },
+  filterBtnLabel: {
+    fontSize: 13,
+    fontFamily: 'Inter_500Medium',
+  },
   addBtn: {
     width: 40,
     height: 40,
@@ -238,39 +236,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // ── Filter bar ───────────────────────────────────────────
-  filterBar: {
-    borderBottomWidth: StyleSheet.hairlineWidth,
-  },
-  filterScroll: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingVertical: 5,
-    paddingHorizontal: 12,
-    gap: 4,
-  },
-  chipCheck: {
-    marginRight: 2,
-  },
-  chipLabel: {
-    fontSize: 13,
-    fontFamily: 'Inter_500Medium',
-  },
-  // ── List ────────────────────────────────────────────────
-  listContent: {
-    paddingTop: 12,
-  },
-  centered: {
-    flex: 1,
-  },
+  listContent: { paddingTop: 12 },
+  centered: { flex: 1 },
   emptyState: {
     flex: 1,
     alignItems: 'center',
