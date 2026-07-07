@@ -14,11 +14,11 @@ function NativeTabLayout() {
     <NativeTabs>
       <NativeTabs.Trigger name="index">
         <Icon sf={{ default: 'bookmark', selected: 'bookmark.fill' }} />
-        <Label>Want to Read</Label>
+        <Label>Хочу прочитать</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="reading">
         <Icon sf={{ default: 'book', selected: 'book.fill' }} />
-        <Label>Reading</Label>
+        <Label>Читаю</Label>
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="read">
         <Icon
@@ -27,7 +27,7 @@ function NativeTabLayout() {
             selected: 'checkmark.circle.fill',
           }}
         />
-        <Label>Finished</Label>
+        <Label>Прочитано</Label>
       </NativeTabs.Trigger>
     </NativeTabs>
   );
@@ -76,7 +76,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Want to Read',
+          title: 'Хочу прочитать',
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView name="bookmark" tintColor={color} size={22} />
@@ -88,7 +88,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="reading"
         options={{
-          title: 'Reading',
+          title: 'Читаю',
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView name="book" tintColor={color} size={22} />
@@ -100,7 +100,7 @@ function ClassicTabLayout() {
       <Tabs.Screen
         name="read"
         options={{
-          title: 'Finished',
+          title: 'Прочитано',
           tabBarIcon: ({ color }) =>
             isIOS ? (
               <SymbolView

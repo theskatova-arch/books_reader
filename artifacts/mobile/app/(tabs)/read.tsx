@@ -16,9 +16,18 @@ import { AddBookModal } from '@/components/AddBookModal';
 import { MonthYearPickerModal } from '@/components/MonthYearPickerModal';
 
 const MONTHS_SHORT = [
-  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+  'Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн',
+  'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек',
 ];
+
+function pluralBooks(n: number): string {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 14) return `${n} книг`;
+  if (mod10 === 1) return `${n} книга`;
+  if (mod10 >= 2 && mod10 <= 4) return `${n} книги`;
+  return `${n} книг`;
+}
 
 interface ActiveFilter {
   month: number; // 0-based
@@ -36,7 +45,6 @@ export default function ReadScreen() {
 
   const allRead = books.filter((b) => b.status === 'read');
 
-  // Years that have at least one finished book with a date, newest first
   const availableYears = useMemo(() => {
     const set = new Set<number>();
     for (const b of allRead) {
@@ -45,7 +53,6 @@ export default function ReadScreen() {
     return Array.from(set).sort((a, b) => b - a);
   }, [allRead]);
 
-  // Apply filter
   const list = useMemo(() => {
     if (!filter) return allRead;
     return allRead.filter((b) => {
@@ -76,16 +83,16 @@ export default function ReadScreen() {
       >
         <View style={styles.headerLeft}>
           <Text style={[styles.headerTitle, { color: colors.foreground }]}>
-            Finished
+            Прочитано
           </Text>
           <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>
-            {list.length} {list.length === 1 ? 'book' : 'books'}
-            {filter ? ` in ${filterLabel}` : ' read'}
+            {filter
+              ? `${pluralBooks(list.length)} за ${filterLabel}`
+              : `${pluralBooks(list.length)} прочитано`}
           </Text>
         </View>
 
         <View style={styles.headerRight}>
-          {/* Filter button */}
           <TouchableOpacity
             style={[
               styles.filterBtn,
@@ -109,7 +116,6 @@ export default function ReadScreen() {
             )}
           </TouchableOpacity>
 
-          {/* Add button */}
           <TouchableOpacity
             style={[styles.addBtn, { backgroundColor: colors.primary }]}
             onPress={() => setModalVisible(true)}
@@ -140,13 +146,13 @@ export default function ReadScreen() {
             />
             <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
               {filter
-                ? `No books in ${filterLabel}`
-                : 'No books finished yet'}
+                ? `Нет книг за ${filterLabel}`
+                : 'Нет прочитанных книг'}
             </Text>
             <Text style={[styles.emptySubtitle, { color: colors.mutedForeground }]}>
               {filter
-                ? 'Try a different month or year'
-                : 'Books you finish will appear here'}
+                ? 'Попробуйте другой месяц или год'
+                : 'Здесь появятся прочитанные книги'}
             </Text>
             {filter && (
               <TouchableOpacity
@@ -155,7 +161,7 @@ export default function ReadScreen() {
                 activeOpacity={0.7}
               >
                 <Text style={[styles.clearBtnLabel, { color: colors.foreground }]}>
-                  Clear filter
+                  Сбросить фильтр
                 </Text>
               </TouchableOpacity>
             )}
@@ -198,9 +204,7 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  headerLeft: {
-    flex: 1,
-  },
+  headerLeft: { flex: 1 },
   headerTitle: {
     fontSize: 26,
     fontFamily: 'Inter_700Bold',

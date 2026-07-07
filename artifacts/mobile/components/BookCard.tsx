@@ -43,7 +43,6 @@ function ActionButton({
   );
 }
 
-/** A tappable date chip with a pencil icon. */
 function DateChip({
   label,
   timestamp,
@@ -55,9 +54,9 @@ function DateChip({
   color: string;
   onPress: () => void;
 }) {
-  const formatted = new Date(timestamp).toLocaleDateString(undefined, {
-    month: 'short',
+  const formatted = new Date(timestamp).toLocaleDateString('ru-RU', {
     day: 'numeric',
+    month: 'long',
     year: 'numeric',
   });
   return (
@@ -116,7 +115,9 @@ export function BookCard({ book }: BookCardProps) {
       : new Date(book.finishedAt ?? Date.now());
 
   const editingTitle =
-    editingField === 'startedReadingAt' ? 'Edit Start Date' : 'Edit Finish Date';
+    editingField === 'startedReadingAt'
+      ? 'Дата начала'
+      : 'Дата окончания';
 
   return (
     <>
@@ -159,12 +160,12 @@ export function BookCard({ book }: BookCardProps) {
             </TouchableOpacity>
           </View>
 
-          {/* Dates row */}
+          {/* Dates */}
           {(book.startedReadingAt != null || book.finishedAt != null) && (
             <View style={styles.datesRow}>
               {book.startedReadingAt != null && (
                 <DateChip
-                  label="Started"
+                  label="Начато"
                   timestamp={book.startedReadingAt}
                   color={colors.mutedForeground}
                   onPress={() => setEditingField('startedReadingAt')}
@@ -172,7 +173,7 @@ export function BookCard({ book }: BookCardProps) {
               )}
               {book.finishedAt != null && book.status === 'read' && (
                 <DateChip
-                  label="Finished"
+                  label="Закончено"
                   timestamp={book.finishedAt}
                   color={colors.primary}
                   onPress={() => setEditingField('finishedAt')}
@@ -187,13 +188,13 @@ export function BookCard({ book }: BookCardProps) {
                 <>
                   <ActionButton
                     icon="book-outline"
-                    label="Start Reading"
+                    label="Начать читать"
                     color={colors.primary}
                     onPress={() => handleMove('reading')}
                   />
                   <ActionButton
                     icon="checkmark-circle-outline"
-                    label="Already Read"
+                    label="Уже прочитал"
                     color={colors.accent}
                     onPress={() => handleMove('read')}
                   />
@@ -202,7 +203,7 @@ export function BookCard({ book }: BookCardProps) {
               {book.status === 'reading' && (
                 <ActionButton
                   icon="checkmark-circle"
-                  label="Mark as Finished"
+                  label="Завершить чтение"
                   color={colors.primary}
                   onPress={() => handleMove('read')}
                 />
@@ -214,7 +215,7 @@ export function BookCard({ book }: BookCardProps) {
             <View style={styles.finishedBadge}>
               <Ionicons name="checkmark-circle" size={14} color={colors.primary} />
               <Text style={[styles.finishedLabel, { color: colors.primary }]}>
-                Finished
+                Прочитано
               </Text>
             </View>
           )}
@@ -267,7 +268,6 @@ const styles = StyleSheet.create({
   deleteBtn: {
     marginTop: 2,
   },
-  // ── Dates ────────────────────────────────────────────────
   datesRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -286,7 +286,6 @@ const styles = StyleSheet.create({
   dateChipIcon: {
     marginTop: 1,
   },
-  // ── Actions ──────────────────────────────────────────────
   actionsRow: {
     flexDirection: 'row',
     gap: 8,

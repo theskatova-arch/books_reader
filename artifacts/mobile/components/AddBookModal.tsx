@@ -95,10 +95,10 @@ export function AddBookModal({
 
   const statusLabel =
     targetStatus === 'reading'
-      ? 'Currently Reading'
+      ? 'Читаю сейчас'
       : targetStatus === 'read'
-        ? 'Already Read'
-        : 'Want to Read';
+        ? 'Прочитано'
+        : 'Хочу прочитать';
 
   return (
     <Modal
@@ -125,34 +125,21 @@ export function AddBookModal({
               ]}
             >
               {/* Handle */}
-              <View
-                style={[styles.handle, { backgroundColor: colors.border }]}
-              />
+              <View style={[styles.handle, { backgroundColor: colors.border }]} />
 
               {/* Header */}
               <View style={styles.sheetHeader}>
-                <Text
-                  style={[styles.sheetTitle, { color: colors.foreground }]}
-                >
-                  Add to {statusLabel}
+                <Text style={[styles.sheetTitle, { color: colors.foreground }]}>
+                  Добавить в «{statusLabel}»
                 </Text>
                 <TouchableOpacity onPress={handleClose} hitSlop={12}>
-                  <Ionicons
-                    name="close"
-                    size={22}
-                    color={colors.mutedForeground}
-                  />
+                  <Ionicons name="close" size={22} color={colors.mutedForeground} />
                 </TouchableOpacity>
               </View>
 
               {/* Mode toggle */}
               {showPickMode && (
-                <View
-                  style={[
-                    styles.modeToggle,
-                    { backgroundColor: colors.muted },
-                  ]}
-                >
+                <View style={[styles.modeToggle, { backgroundColor: colors.muted }]}>
                   {(['manual', 'pick'] as Mode[]).map((m) => (
                     <TouchableOpacity
                       key={m}
@@ -180,7 +167,7 @@ export function AddBookModal({
                           },
                         ]}
                       >
-                        {m === 'manual' ? 'New Book' : 'From List'}
+                        {m === 'manual' ? 'Новая книга' : 'Из списка'}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -203,7 +190,7 @@ export function AddBookModal({
                           borderRadius: colors.radius,
                         },
                       ]}
-                      placeholder="Book title *"
+                      placeholder="Название книги *"
                       placeholderTextColor={colors.mutedForeground}
                       value={title}
                       onChangeText={(t) => {
@@ -214,13 +201,8 @@ export function AddBookModal({
                       autoFocus
                     />
                     {titleError && (
-                      <Text
-                        style={[
-                          styles.errorText,
-                          { color: colors.destructive },
-                        ]}
-                      >
-                        Title is required
+                      <Text style={[styles.errorText, { color: colors.destructive }]}>
+                        Укажите название
                       </Text>
                     )}
                   </View>
@@ -234,7 +216,7 @@ export function AddBookModal({
                         borderRadius: colors.radius,
                       },
                     ]}
-                    placeholder="Author (optional)"
+                    placeholder="Автор (необязательно)"
                     placeholderTextColor={colors.mutedForeground}
                     value={author}
                     onChangeText={setAuthor}
@@ -252,13 +234,8 @@ export function AddBookModal({
                     onPress={handleAdd}
                     activeOpacity={0.85}
                   >
-                    <Text
-                      style={[
-                        styles.addButtonLabel,
-                        { color: colors.primaryForeground },
-                      ]}
-                    >
-                      Add Book
+                    <Text style={[styles.addButtonLabel, { color: colors.primaryForeground }]}>
+                      Добавить
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -287,31 +264,21 @@ export function AddBookModal({
                     >
                       <View style={styles.pickItemText}>
                         <Text
-                          style={[
-                            styles.pickItemTitle,
-                            { color: colors.foreground },
-                          ]}
+                          style={[styles.pickItemTitle, { color: colors.foreground }]}
                           numberOfLines={1}
                         >
                           {item.title}
                         </Text>
                         {item.author.length > 0 && (
                           <Text
-                            style={[
-                              styles.pickItemAuthor,
-                              { color: colors.mutedForeground },
-                            ]}
+                            style={[styles.pickItemAuthor, { color: colors.mutedForeground }]}
                             numberOfLines={1}
                           >
                             {item.author}
                           </Text>
                         )}
                       </View>
-                      <Ionicons
-                        name="chevron-forward"
-                        size={16}
-                        color={colors.mutedForeground}
-                      />
+                      <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
                     </TouchableOpacity>
                   )}
                 />

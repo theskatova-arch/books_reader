@@ -14,6 +14,15 @@ import { useBooks } from '@/context/BooksContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
 
+function pluralBooks(n: number): string {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 14) return `${n} книг`;
+  if (mod10 === 1) return `${n} книга`;
+  if (mod10 >= 2 && mod10 <= 4) return `${n} книги`;
+  return `${n} книг`;
+}
+
 export default function ReadingScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -26,7 +35,6 @@ export default function ReadingScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Custom Header */}
       <View
         style={[
           styles.header,
@@ -39,10 +47,10 @@ export default function ReadingScreen() {
       >
         <View>
           <Text style={[styles.headerTitle, { color: colors.foreground }]}>
-            Currently Reading
+            Читаю сейчас
           </Text>
           <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>
-            {list.length} {list.length === 1 ? 'book' : 'books'}
+            {pluralBooks(list.length)}
           </Text>
         </View>
         <TouchableOpacity
@@ -73,12 +81,12 @@ export default function ReadingScreen() {
               color={colors.mutedForeground}
             />
             <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
-              Nothing in progress yet
+              Ничего не читается
             </Text>
             <Text
               style={[styles.emptySubtitle, { color: colors.mutedForeground }]}
             >
-              Start a book from your list or add one here
+              Начните книгу из списка или добавьте новую
             </Text>
           </View>
         }

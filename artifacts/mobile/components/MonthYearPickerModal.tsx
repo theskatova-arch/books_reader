@@ -11,17 +11,16 @@ import {
 import { useColors } from '@/hooks/useColors';
 
 const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
+  'Январь', 'Февраль', 'Март', 'Апрель', 'Май', 'Июнь',
+  'Июль', 'Август', 'Сентябрь', 'Октябрь', 'Ноябрь', 'Декабрь',
 ];
 
 const ITEM_H = 46;
-const VISIBLE = 5; // rows visible at once
+const VISIBLE = 5;
 const COL_H = ITEM_H * VISIBLE;
 
 interface Props {
   visible: boolean;
-  /** 0-based month, or null if no filter is active */
   initialMonth: number | null;
   initialYear: number | null;
   availableYears: number[];
@@ -45,13 +44,10 @@ function PickerColumn<T extends string | number>({
 }) {
   const colors = useColors();
   const ref = useRef<FlatList<T>>(null);
-
   const selectedIndex = items.indexOf(selected);
 
-  // Scroll to the selected item on mount and when selection changes
   useEffect(() => {
     if (selectedIndex < 0) return;
-    // delay one frame so FlatList has laid out
     const t = setTimeout(() => {
       ref.current?.scrollToIndex({ index: selectedIndex, animated: false, viewPosition: 0.5 });
     }, 50);
@@ -60,23 +56,15 @@ function PickerColumn<T extends string | number>({
 
   return (
     <View style={[styles.column, { borderColor: colors.border }]}>
-      {/* Selection highlight band */}
       <View
-        style={[
-          styles.selectionBand,
-          { backgroundColor: colors.secondary, top: ITEM_H * 2 },
-        ]}
+        style={[styles.selectionBand, { backgroundColor: colors.secondary, top: ITEM_H * 2 }]}
         pointerEvents="none"
       />
       <FlatList
         ref={ref}
         data={items}
         keyExtractor={(item) => keyOf(item)}
-        getItemLayout={(_, index) => ({
-          length: ITEM_H,
-          offset: ITEM_H * index,
-          index,
-        })}
+        getItemLayout={(_, index) => ({ length: ITEM_H, offset: ITEM_H * index, index })}
         showsVerticalScrollIndicator={false}
         snapToInterval={ITEM_H}
         decelerationRate="fast"
@@ -85,7 +73,6 @@ function PickerColumn<T extends string | number>({
           const clamped = Math.max(0, Math.min(items.length - 1, idx));
           onSelect(items[clamped]);
         }}
-        // Padding so first/last items can center
         contentContainerStyle={{ paddingVertical: ITEM_H * 2 }}
         style={{ height: COL_H }}
         renderItem={({ item }) => {
@@ -132,14 +119,12 @@ export function MonthYearPickerModal({
   const colors = useColors();
 
   const years = availableYears.length > 0 ? availableYears : [new Date().getFullYear()];
-
   const defaultMonth = initialMonth ?? new Date().getMonth();
   const defaultYear = initialYear ?? years[0];
 
   const [month, setMonth] = useState(defaultMonth);
   const [year, setYear] = useState(defaultYear);
 
-  // Reset to current filter values each time the modal opens
   useEffect(() => {
     if (visible) {
       setMonth(initialMonth ?? new Date().getMonth());
@@ -151,31 +136,23 @@ export function MonthYearPickerModal({
   const isFilterActive = initialMonth != null || initialYear != null;
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      onRequestClose={onCancel}
-    >
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onCancel}>
       <Pressable style={styles.overlay} onPress={onCancel}>
         <Pressable
           style={[styles.sheet, { backgroundColor: colors.card, borderColor: colors.border }]}
           onPress={() => {}}
         >
-          {/* Title row */}
           <View style={styles.titleRow}>
             <Text style={[styles.title, { color: colors.foreground }]}>
-              Filter by Month &amp; Year
+              Фильтр по месяцу и году
             </Text>
           </View>
 
-          {/* Column headers */}
           <View style={styles.columnHeaders}>
-            <Text style={[styles.columnHeader, { color: colors.mutedForeground }]}>Month</Text>
-            <Text style={[styles.columnHeader, { color: colors.mutedForeground }]}>Year</Text>
+            <Text style={[styles.columnHeader, { color: colors.mutedForeground }]}>Месяц</Text>
+            <Text style={[styles.columnHeader, { color: colors.mutedForeground }]}>Год</Text>
           </View>
 
-          {/* Pickers */}
           <View style={styles.pickers}>
             <PickerColumn<number>
               items={MONTHS.map((_, i) => i)}
@@ -194,7 +171,6 @@ export function MonthYearPickerModal({
             />
           </View>
 
-          {/* Actions */}
           <View style={styles.actions}>
             {isFilterActive && (
               <TouchableOpacity
@@ -202,9 +178,7 @@ export function MonthYearPickerModal({
                 onPress={onClear}
                 activeOpacity={0.7}
               >
-                <Text style={[styles.btnLabel, { color: colors.mutedForeground }]}>
-                  Clear
-                </Text>
+                <Text style={[styles.btnLabel, { color: colors.mutedForeground }]}>Сбросить</Text>
               </TouchableOpacity>
             )}
             <TouchableOpacity
@@ -212,18 +186,14 @@ export function MonthYearPickerModal({
               onPress={onCancel}
               activeOpacity={0.7}
             >
-              <Text style={[styles.btnLabel, { color: colors.mutedForeground }]}>
-                Cancel
-              </Text>
+              <Text style={[styles.btnLabel, { color: colors.mutedForeground }]}>Отмена</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.btn, styles.btnPrimary, { backgroundColor: colors.primary }]}
               onPress={() => onConfirm(month, year)}
               activeOpacity={0.8}
             >
-              <Text style={[styles.btnLabel, { color: colors.primaryForeground }]}>
-                Apply
-              </Text>
+              <Text style={[styles.btnLabel, { color: colors.primaryForeground }]}>Применить</Text>
             </TouchableOpacity>
           </View>
         </Pressable>
@@ -249,73 +219,30 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     gap: 16,
   },
-  titleRow: {
-    alignItems: 'center',
-  },
-  title: {
-    fontSize: 16,
-    fontFamily: 'Inter_600SemiBold',
-  },
-  columnHeaders: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-  },
+  titleRow: { alignItems: 'center' },
+  title: { fontSize: 16, fontFamily: 'Inter_600SemiBold' },
+  columnHeaders: { flexDirection: 'row', justifyContent: 'space-around' },
   columnHeader: {
     fontSize: 12,
     fontFamily: 'Inter_500Medium',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
-  pickers: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 0,
-  },
-  column: {
-    flex: 1,
-    borderRadius: 12,
-    borderWidth: 1,
-    overflow: 'hidden',
-  },
+  pickers: { flexDirection: 'row', alignItems: 'center' },
+  column: { flex: 1, borderRadius: 12, borderWidth: 1, overflow: 'hidden' },
   selectionBand: {
     position: 'absolute',
     left: 0,
     right: 0,
     height: ITEM_H,
     zIndex: 0,
-    borderRadius: 0,
   },
-  divider: {
-    width: 12,
-  },
-  item: {
-    height: ITEM_H,
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 1,
-  },
-  itemLabel: {
-    fontSize: 16,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: 10,
-  },
-  btn: {
-    flex: 1,
-    height: 46,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  btnOutline: {
-    borderWidth: 1,
-  },
-  btnPrimary: {
-    borderWidth: 0,
-  },
-  btnLabel: {
-    fontSize: 15,
-    fontFamily: 'Inter_500Medium',
-  },
+  divider: { width: 12 },
+  item: { height: ITEM_H, alignItems: 'center', justifyContent: 'center', zIndex: 1 },
+  itemLabel: { fontSize: 16 },
+  actions: { flexDirection: 'row', gap: 10 },
+  btn: { flex: 1, height: 46, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  btnOutline: { borderWidth: 1 },
+  btnPrimary: { borderWidth: 0 },
+  btnLabel: { fontSize: 15, fontFamily: 'Inter_500Medium' },
 });
