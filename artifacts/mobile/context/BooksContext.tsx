@@ -17,6 +17,8 @@ export interface Book {
   addedAt: number;
   /** Timestamp (ms) when the book was moved to "Currently Reading" */
   startedReadingAt?: number;
+  /** Timestamp (ms) when the book was moved to "Finished" */
+  finishedAt?: number;
 }
 
 interface BooksContextType {
@@ -58,6 +60,7 @@ export function BooksProvider({ children }: { children: React.ReactNode }) {
         status,
         addedAt: now,
         startedReadingAt: status === 'reading' ? now : undefined,
+        finishedAt: status === 'read' ? now : undefined,
       };
       setBooks((prev) => {
         const next = [book, ...prev];
@@ -80,6 +83,10 @@ export function BooksProvider({ children }: { children: React.ReactNode }) {
                   newStatus === 'reading' && b.startedReadingAt == null
                     ? Date.now()
                     : b.startedReadingAt,
+                finishedAt:
+                  newStatus === 'read' && b.finishedAt == null
+                    ? Date.now()
+                    : b.finishedAt,
               }
             : b,
         );

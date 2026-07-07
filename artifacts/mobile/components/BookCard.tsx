@@ -162,6 +162,16 @@ export function BookCard({ book }: BookCardProps) {
             <Text style={[styles.finishedLabel, { color: colors.primary }]}>
               Finished
             </Text>
+            {book.finishedAt != null && (
+              <Text style={[styles.finishedDate, { color: colors.mutedForeground }]}>
+                ·{' '}
+                {new Date(book.finishedAt).toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </Text>
+            )}
           </View>
         )}
       </Animated.View>
@@ -235,5 +245,9 @@ const styles = StyleSheet.create({
   finishedLabel: {
     fontSize: 12,
     fontFamily: 'Inter_500Medium',
+  },
+  finishedDate: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
   },
 });
