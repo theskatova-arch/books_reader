@@ -1,10 +1,11 @@
-import React, { useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Animated,
   Platform,
   Pressable,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -37,6 +38,123 @@ function ActionButton({
       <Ionicons name={icon} size={16} color={color} />
       <Text style={[styles.actionBtnLabel, { color }]}>{label}</Text>
     </TouchableOpacity>
+  );
+}
+
+/** Inline page-position editor shown on Currently Reading cards. */
+function ProgressEditor({ book }: { book: Book }) {
+  const colors = useColors();
+  const { updateProgress } = useBooks();
+
+  const [currentInput, setCurrentInput] = useState(
+    book.currentPage != null ? String(book.currentPage) : '',
+  );
+  const [totalInput, setTotalInput] = useState(
+    book.totalPages != null ? String(book.totalPages) : '',
+  );
+
+  // Keep local state in sync if the book is updated externally
+  useEffect(() => {
+    setCurrentInput(book.currentPage != null ? String(book.currentPage) : '');
+  }, [book.currentPage]);
+  useEffect(() => {
+    setTotalInput(book.totalPages != null ? String(book.totalPages) : '');
+  }, [book.totalPages]);
+
+  const save = () => {
+    const current = parseInt(currentInput, 10);
+    const total = parseInt(totalInput, 10);
+    if (!Number.isFinite(current) || current < 0) return;
+    updateProgress(
+      book.id,
+      current,
+      Number.isFinite(total) && total > 0 ? total : undefined,
+    );
+  };
+
+  const total = parseInt(totalInput, 10);
+  const current = parseInt(currentInput, 10);
+  const progress =
+    Number.isFinite(total) && total > 0 && Number.isFinite(current) && current >= 0
+      ? Math.min(current / total, 1)
+      : null;
+
+  return (
+    <View style={styles.progressSection}>
+      {/* Progress bar */}
+      {progress !== null && (
+        <View style={[styles.progressTrack, { backgroundColor: colors.border }]}>
+          <View
+            style={[
+              styles.progressFill,
+              {
+                backgroundColor: colors.primary,
+                width: `${Math.round(progress * 100)}%`,
+              },
+            ]}
+          />
+        </View>
+      )}
+
+      {/* Page inputs row */}
+      <View style={styles.pageRow}>
+        <Ionicons
+          name="bookmark-outline"
+          size={14}
+          color={colors.mutedForeground}
+          style={styles.pageIcon}
+        />
+        <Text style={[styles.pageLabel, { color: colors.mutedForeground }]}>
+          Page
+        </Text>
+        <TextInput
+          style={[
+            styles.pageInput,
+            {
+              color: colors.foreground,
+              borderColor: colors.border,
+              backgroundColor: colors.background,
+            },
+          ]}
+          keyboardType="number-pad"
+          value={currentInput}
+          onChangeText={setCurrentInput}
+          onBlur={save}
+          placeholder="—"
+          placeholderTextColor={colors.mutedForeground}
+          maxLength={6}
+          returnKeyType="done"
+          onSubmitEditing={save}
+        />
+        <Text style={[styles.pageLabel, { color: colors.mutedForeground }]}>
+          of
+        </Text>
+        <TextInput
+          style={[
+            styles.pageInput,
+            {
+              color: colors.foreground,
+              borderColor: colors.border,
+              backgroundColor: colors.background,
+            },
+          ]}
+          keyboardType="number-pad"
+          value={totalInput}
+          onChangeText={setTotalInput}
+          onBlur={save}
+          placeholder="—"
+          placeholderTextColor={colors.mutedForeground}
+          maxLength={6}
+          returnKeyType="done"
+          onSubmitEditing={save}
+        />
+        {progress !== null && (
+          <Text style={[styles.percentLabel, { color: colors.primary }]}>
+            {Math.round(progress * 100)}%
+          </Text>
+        )}
+      </View>
+    </View>
   );
 }
 
@@ -112,6 +230,9 @@ export function BookCard({ book }: BookCardProps) {
             <Ionicons name="trash-outline" size={18} color={colors.destructive} />
           </TouchableOpacity>
         </View>
+
+        {/* Reading progress editor */}
+        {book.status === 'reading' && <ProgressEditor book={book} />}
 
         {book.status !== 'read' && (
           <View style={styles.actionsRow}>
@@ -192,6 +313,48 @@ const styles = StyleSheet.create({
   deleteBtn: {
     marginTop: 2,
   },
+  // ── Progress editor ──────────────────────────────────────
+  progressSection: {
+    marginTop: 12,
+    gap: 8,
+  },
+  progressTrack: {
+    height: 4,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  pageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  pageIcon: {
+    marginRight: 2,
+  },
+  pageLabel: {
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+  },
+  pageInput: {
+    width: 56,
+    height: 30,
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    fontSize: 13,
+    fontFamily: 'Inter_500Medium',
+    textAlign: 'center',
+  },
+  percentLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+    marginLeft: 4,
+  },
+  // ── Actions ──────────────────────────────────────────────
   actionsRow: {
     flexDirection: 'row',
     gap: 8,
