@@ -15,6 +15,8 @@ export interface Book {
   author: string;
   status: BookStatus;
   addedAt: number;
+  /** Timestamp (ms) when the book was moved to "Currently Reading" */
+  startedReadingAt?: number;
 }
 
 interface BooksContextType {
@@ -48,13 +50,14 @@ export function BooksProvider({ children }: { children: React.ReactNode }) {
 
   const addBook = useCallback(
     (title: string, author: string, status: BookStatus) => {
+      const now = Date.now();
       const book: Book = {
-        id:
-          Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        id: now.toString() + Math.random().toString(36).substr(2, 9),
         title: title.trim(),
         author: author.trim(),
         status,
-        addedAt: Date.now(),
+        addedAt: now,
+        startedReadingAt: status === 'reading' ? now : undefined,
       };
       setBooks((prev) => {
         const next = [book, ...prev];
@@ -69,7 +72,16 @@ export function BooksProvider({ children }: { children: React.ReactNode }) {
     (id: string, newStatus: BookStatus) => {
       setBooks((prev) => {
         const next = prev.map((b) =>
-          b.id === id ? { ...b, status: newStatus } : b,
+          b.id === id
+            ? {
+                ...b,
+                status: newStatus,
+                startedReadingAt:
+                  newStatus === 'reading' && b.startedReadingAt == null
+                    ? Date.now()
+                    : b.startedReadingAt,
+              }
+            : b,
         );
         persist(next);
         return next;

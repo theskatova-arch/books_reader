@@ -102,6 +102,16 @@ export function BookCard({ book }: BookCardProps) {
                 {book.author}
               </Text>
             )}
+            {book.status === 'reading' && book.startedReadingAt != null && (
+              <Text style={[styles.startedDate, { color: colors.mutedForeground }]}>
+                Started{' '}
+                {new Date(book.startedReadingAt).toLocaleDateString(undefined, {
+                  month: 'short',
+                  day: 'numeric',
+                  year: 'numeric',
+                })}
+              </Text>
+            )}
           </View>
 
           <TouchableOpacity
@@ -188,6 +198,11 @@ const styles = StyleSheet.create({
   author: {
     fontSize: 13,
     fontFamily: 'Inter_400Regular',
+  },
+  startedDate: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
+    marginTop: 2,
   },
   deleteBtn: {
     marginTop: 2,
