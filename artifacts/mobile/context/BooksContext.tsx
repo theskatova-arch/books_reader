@@ -5,126 +5,147 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { booksApi } from '@/lib/api';
+import { useAuth } from '@/context/AuthContext';
+import type { Book, BookStatus } from '@/types/books';
 
-export type BookStatus = 'want-to-read' | 'reading' | 'read';
-
-export interface Book {
-  id: string;
-  title: string;
-  author: string;
-  status: BookStatus;
-  addedAt: number;
-  /** Timestamp (ms) when the book was moved to "Currently Reading" */
-  startedReadingAt?: number;
-  /** Timestamp (ms) when the book was moved to "Finished" */
-  finishedAt?: number;
-}
+export type { BookStatus, Book };
 
 interface BooksContextType {
   books: Book[];
-  addBook: (title: string, author: string, status: BookStatus) => void;
-  moveBook: (id: string, newStatus: BookStatus) => void;
-  deleteBook: (id: string) => void;
-  updateDates: (id: string, fields: { startedReadingAt?: number; finishedAt?: number }) => void;
+  addBook: (title: string, author: string, status: BookStatus) => Promise<void>;
+  moveBook: (id: string, newStatus: BookStatus) => Promise<void>;
+  deleteBook: (id: string) => Promise<void>;
+  updateDates: (
+    id: string,
+    fields: { startedReadingAt?: number; finishedAt?: number },
+  ) => Promise<void>;
   isLoading: boolean;
+  error: string | null;
+  reload: () => Promise<void>;
 }
 
 const BooksContext = createContext<BooksContextType | null>(null);
 
-const STORAGE_KEY = '@books_tracker_v1';
-
 export function BooksProvider({ children }: { children: React.ReactNode }) {
   const [books, setBooks] = useState<Book[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const { token } = useAuth();
+
+  const reload = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await booksApi.list();
+      setBooks(data);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Ошибка загрузки');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    AsyncStorage.getItem(STORAGE_KEY)
-      .then((data) => {
-        if (data) setBooks(JSON.parse(data));
-      })
-      .catch(() => {})
-      .finally(() => setIsLoading(false));
-  }, []);
-
-  const persist = useCallback((next: Book[]) => {
-    AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(next)).catch(() => {});
-  }, []);
+    if (token) {
+      reload();
+    } else {
+      setBooks([]);
+      setIsLoading(false);
+      setError(null);
+    }
+  }, [token, reload]);
 
   const addBook = useCallback(
-    (title: string, author: string, status: BookStatus) => {
+    async (title: string, author: string, status: BookStatus) => {
       const now = Date.now();
-      const book: Book = {
-        id: now.toString() + Math.random().toString(36).substr(2, 9),
+      const book = await booksApi.create({
         title: title.trim(),
         author: author.trim(),
         status,
         addedAt: now,
         startedReadingAt: status === 'reading' ? now : undefined,
         finishedAt: status === 'read' ? now : undefined,
-      };
-      setBooks((prev) => {
-        const next = [book, ...prev];
-        persist(next);
-        return next;
       });
+      setBooks((prev) => [book, ...prev]);
     },
-    [persist],
+    [],
   );
 
   const moveBook = useCallback(
-    (id: string, newStatus: BookStatus) => {
-      setBooks((prev) => {
-        const next = prev.map((b) =>
-          b.id === id
-            ? {
-                ...b,
-                status: newStatus,
-                startedReadingAt:
-                  newStatus === 'reading' && b.startedReadingAt == null
-                    ? Date.now()
-                    : b.startedReadingAt,
-                finishedAt:
-                  newStatus === 'read' && b.finishedAt == null
-                    ? Date.now()
-                    : b.finishedAt,
-              }
-            : b,
-        );
-        persist(next);
-        return next;
-      });
+    async (id: string, newStatus: BookStatus) => {
+      const current = books.find((b) => b.id === id);
+      if (!current) return;
+
+      const payload: { status: BookStatus; startedReadingAt?: number; finishedAt?: number } = {
+        status: newStatus,
+      };
+      if (newStatus === 'reading' && current.startedReadingAt == null) {
+        payload.startedReadingAt = Date.now();
+      }
+      if (newStatus === 'read' && current.finishedAt == null) {
+        payload.finishedAt = Date.now();
+      }
+
+      // Optimistic update
+      setBooks((prev) =>
+        prev.map((b) =>
+          b.id === id ? { ...b, ...payload } : b,
+        ),
+      );
+
+      try {
+        const updated = await booksApi.update(id, payload);
+        setBooks((prev) => prev.map((b) => (b.id === id ? updated : b)));
+      } catch {
+        // Roll back on failure
+        setBooks((prev) => prev.map((b) => (b.id === id ? current : b)));
+        throw new Error('Не удалось переместить книгу');
+      }
     },
-    [persist],
+    [books],
   );
 
   const deleteBook = useCallback(
-    (id: string) => {
-      setBooks((prev) => {
-        const next = prev.filter((b) => b.id !== id);
-        persist(next);
-        return next;
-      });
+    async (id: string) => {
+      const snapshot = books;
+      setBooks((prev) => prev.filter((b) => b.id !== id));
+      try {
+        await booksApi.remove(id);
+      } catch {
+        setBooks(snapshot);
+        throw new Error('Не удалось удалить книгу');
+      }
     },
-    [persist],
+    [books],
   );
 
   const updateDates = useCallback(
-    (id: string, fields: { startedReadingAt?: number; finishedAt?: number }) => {
-      setBooks((prev) => {
-        const next = prev.map((b) =>
-          b.id === id ? { ...b, ...fields } : b,
-        );
-        persist(next);
-        return next;
-      });
+    async (
+      id: string,
+      fields: { startedReadingAt?: number; finishedAt?: number },
+    ) => {
+      const current = books.find((b) => b.id === id);
+      if (!current) return;
+
+      setBooks((prev) =>
+        prev.map((b) => (b.id === id ? { ...b, ...fields } : b)),
+      );
+      try {
+        const updated = await booksApi.update(id, fields);
+        setBooks((prev) => prev.map((b) => (b.id === id ? updated : b)));
+      } catch {
+        setBooks((prev) => prev.map((b) => (b.id === id ? current : b)));
+        throw new Error('Не удалось обновить даты');
+      }
     },
-    [persist],
+    [books],
   );
 
   return (
     <BooksContext.Provider
-      value={{ books, addBook, moveBook, deleteBook, updateDates, isLoading }}
+      value={{ books, addBook, moveBook, deleteBook, updateDates, isLoading, error, reload }}
     >
       {children}
     </BooksContext.Provider>

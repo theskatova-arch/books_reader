@@ -1,0 +1,98 @@
+import { Router, type IRouter } from "express";
+import crypto from "crypto";
+import { authenticate } from "../middlewares/authenticate.js";
+import { getBooks, saveBooks, type BookRecord } from "../lib/storage.js";
+
+const router: IRouter = Router();
+
+router.use(authenticate);
+
+// GET /api/books — list all books for the authenticated user
+router.get("/", (req, res) => {
+  const books = getBooks(req.user!.userId);
+  res.json(books);
+});
+
+// POST /api/books — create a new book
+router.post("/", (req, res) => {
+  const { title, author, status, addedAt, startedReadingAt, finishedAt } =
+    req.body as Partial<BookRecord>;
+
+  if (!title || typeof title !== "string" || title.trim().length === 0) {
+    res.status(400).json({ error: "Название книги обязательно" });
+    return;
+  }
+
+  const validStatuses = ["want-to-read", "reading", "read"];
+  if (!status || !validStatuses.includes(status)) {
+    res.status(400).json({ error: "Недопустимый статус книги" });
+    return;
+  }
+
+  const book: BookRecord = {
+    id: crypto.randomUUID(),
+    title: title.trim(),
+    author: typeof author === "string" ? author.trim() : "",
+    status,
+    addedAt: typeof addedAt === "number" ? addedAt : Date.now(),
+    startedReadingAt:
+      typeof startedReadingAt === "number" ? startedReadingAt : undefined,
+    finishedAt: typeof finishedAt === "number" ? finishedAt : undefined,
+  };
+
+  const books = getBooks(req.user!.userId);
+  books.unshift(book);
+  saveBooks(req.user!.userId, books);
+
+  res.status(201).json(book);
+});
+
+// PUT /api/books/:id — update a book
+router.put("/:id", (req, res) => {
+  const { id } = req.params;
+  const books = getBooks(req.user!.userId);
+  const idx = books.findIndex((b) => b.id === id);
+
+  if (idx === -1) {
+    res.status(404).json({ error: "Книга не найдена" });
+    return;
+  }
+
+  const updates = req.body as Partial<BookRecord>;
+  const allowedKeys: (keyof BookRecord)[] = [
+    "title",
+    "author",
+    "status",
+    "startedReadingAt",
+    "finishedAt",
+  ];
+
+  const updated: BookRecord = { ...books[idx]! };
+  for (const key of allowedKeys) {
+    if (key in updates) {
+      // @ts-expect-error dynamic assignment
+      updated[key] = updates[key];
+    }
+  }
+  books[idx] = updated;
+  saveBooks(req.user!.userId, books);
+
+  res.json(updated);
+});
+
+// DELETE /api/books/:id — delete a book
+router.delete("/:id", (req, res) => {
+  const { id } = req.params;
+  const books = getBooks(req.user!.userId);
+  const filtered = books.filter((b) => b.id !== id);
+
+  if (filtered.length === books.length) {
+    res.status(404).json({ error: "Книга не найдена" });
+    return;
+  }
+
+  saveBooks(req.user!.userId, filtered);
+  res.status(204).send();
+});
+
+export default router;

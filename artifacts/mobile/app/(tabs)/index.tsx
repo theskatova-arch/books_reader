@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 import { useBooks } from '@/context/BooksContext';
+import { useAuth } from '@/context/AuthContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
 
@@ -27,6 +28,7 @@ export default function WantToReadScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { books } = useBooks();
+  const { logout, username } = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
 
   const list = books.filter((b) => b.status === 'want-to-read');
@@ -53,13 +55,23 @@ export default function WantToReadScreen() {
             {pluralBooks(list.length)}
           </Text>
         </View>
-        <TouchableOpacity
-          style={[styles.addBtn, { backgroundColor: colors.primary }]}
-          onPress={() => setModalVisible(true)}
-          activeOpacity={0.85}
-        >
-          <Ionicons name="add" size={22} color={colors.primaryForeground} />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={[styles.iconBtn, { borderColor: colors.border }]}
+            onPress={() => logout()}
+            activeOpacity={0.75}
+            hitSlop={8}
+          >
+            <Ionicons name="log-out-outline" size={20} color={colors.mutedForeground} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.addBtn, { backgroundColor: colors.primary }]}
+            onPress={() => setModalVisible(true)}
+            activeOpacity={0.85}
+          >
+            <Ionicons name="add" size={22} color={colors.primaryForeground} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList
@@ -122,6 +134,19 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'Inter_400Regular',
     marginTop: 2,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  iconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   addBtn: {
     width: 40,

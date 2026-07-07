@@ -11,6 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 import { useBooks } from '@/context/BooksContext';
+import { useAuth } from '@/context/AuthContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
 import { MonthYearPickerModal } from '@/components/MonthYearPickerModal';
@@ -38,6 +39,7 @@ export default function ReadScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { books } = useBooks();
+  const { logout } = useAuth();
 
   const [modalVisible, setModalVisible] = useState(false);
   const [pickerVisible, setPickerVisible] = useState(false);
@@ -116,6 +118,14 @@ export default function ReadScreen() {
             )}
           </TouchableOpacity>
 
+          <TouchableOpacity
+            style={[styles.iconBtn, { borderColor: colors.border }]}
+            onPress={() => logout()}
+            activeOpacity={0.75}
+            hitSlop={8}
+          >
+            <Ionicons name="log-out-outline" size={20} color={colors.mutedForeground} />
+          </TouchableOpacity>
           <TouchableOpacity
             style={[styles.addBtn, { backgroundColor: colors.primary }]}
             onPress={() => setModalVisible(true)}
@@ -232,6 +242,14 @@ const styles = StyleSheet.create({
   filterBtnLabel: {
     fontSize: 13,
     fontFamily: 'Inter_500Medium',
+  },
+  iconBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   addBtn: {
     width: 40,

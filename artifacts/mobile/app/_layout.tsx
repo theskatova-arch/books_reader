@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -13,17 +14,52 @@ import {
 } from '@expo-google-fonts/inter';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { BooksProvider } from '@/context/BooksContext';
+import colors from '@/constants/colors';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 const queryClient = new QueryClient();
 
-function RootLayoutNav() {
+/**
+ * Decides which screens are accessible based on auth state.
+ * BooksProvider is always mounted (Expo Router pre-renders all screens).
+ * BooksContext skips its API fetch when there is no token.
+ */
+function AppNavigator() {
+  const { token, isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: colors.light.background,
+        }}
+      >
+        <ActivityIndicator color={colors.light.primary} size="large" />
+      </View>
+    );
+  }
+
+  if (!token) {
+    // Not authenticated — only login is reachable
+    return (
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="login" />
+        <Stack.Screen name="(tabs)" redirect />
+      </Stack>
+    );
+  }
+
+  // Authenticated — tabs are home, login redirects away
   return (
-    <Stack screenOptions={{ headerBackTitle: 'Back' }}>
-      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="login" redirect />
     </Stack>
   );
 }
@@ -50,9 +86,15 @@ export default function RootLayout() {
         <QueryClientProvider client={queryClient}>
           <GestureHandlerRootView>
             <KeyboardProvider>
-              <BooksProvider>
-                <RootLayoutNav />
-              </BooksProvider>
+              <AuthProvider>
+                {/* BooksProvider must wrap the navigator so all tab screens
+                    always have access to the context, even when not yet
+                    authenticated. BooksContext skips its API fetch until
+                    a valid token is available. */}
+                <BooksProvider>
+                  <AppNavigator />
+                </BooksProvider>
+              </AuthProvider>
             </KeyboardProvider>
           </GestureHandlerRootView>
         </QueryClientProvider>
