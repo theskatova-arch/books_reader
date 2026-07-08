@@ -16,6 +16,7 @@ import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
 import { MonthYearPickerModal } from '@/components/MonthYearPickerModal';
 import { HeaderMenu } from '@/components/HeaderMenu';
+import { SearchBar } from '@/components/SearchBar';
 
 const MONTHS_SHORT = [
   'Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн',
@@ -45,6 +46,8 @@ export default function ReadScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [pickerVisible, setPickerVisible] = useState(false);
   const [filter, setFilter] = useState<ActiveFilter | null>(null);
+  const [searchVisible, setSearchVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const allRead = books
     .filter((b) => b.status === 'read')
@@ -66,6 +69,16 @@ export default function ReadScreen() {
       return d.getMonth() === filter.month && d.getFullYear() === filter.year;
     });
   }, [allRead, filter]);
+
+  const displayList = useMemo(() => {
+    if (!searchQuery.trim()) return list;
+    const q = searchQuery.toLowerCase();
+    return list.filter(
+      (b) =>
+        b.title.toLowerCase().includes(q) ||
+        (b.author?.toLowerCase().includes(q) ?? false)
+    );
+  }, [list, searchQuery]);
 
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
 
@@ -97,69 +110,95 @@ export default function ReadScreen() {
           </Text>
         </View>
 
-        <HeaderMenu
-          topOffset={topPad + 78}
-          items={[
-            {
-              label: 'Добавить книгу',
-              icon: 'add-circle-outline',
-              onPress: () => setModalVisible(true),
-            },
-            {
-              label: filter ? `Фильтр: ${filterLabel}` : 'Фильтр по месяцу',
-              icon: filter ? 'funnel' : 'funnel-outline',
-              onPress: () => setPickerVisible(true),
-            },
-            {
-              label: 'Выйти',
-              icon: 'log-out-outline',
-              onPress: () => logout(),
-              destructive: true,
-            },
-          ]}
-        />
+        <View style={styles.headerRight}>
+          <TouchableOpacity
+            style={[styles.iconBtn, { borderColor: colors.border }]}
+            onPress={() => setSearchVisible(true)}
+            activeOpacity={0.75}
+            hitSlop={8}
+          >
+            <Ionicons name="search-outline" size={20} color={colors.foreground} />
+          </TouchableOpacity>
+          <HeaderMenu
+            topOffset={topPad + 78}
+            items={[
+              {
+                label: 'Добавить книгу',
+                icon: 'add-circle-outline',
+                onPress: () => setModalVisible(true),
+              },
+              {
+                label: filter ? `Фильтр: ${filterLabel}` : 'Фильтр по месяцу',
+                icon: filter ? 'funnel' : 'funnel-outline',
+                onPress: () => setPickerVisible(true),
+              },
+              {
+                label: 'Выйти',
+                icon: 'log-out-outline',
+                onPress: () => logout(),
+                destructive: true,
+              },
+            ]}
+          />
+        </View>
       </View>
 
+      {searchVisible && (
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onClose={() => { setSearchVisible(false); setSearchQuery(''); }}
+        />
+      )}
+
       <FlatList
-        data={list}
+        data={displayList}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <BookCard book={item} />}
         contentContainerStyle={[
           styles.listContent,
-          list.length === 0 && styles.centered,
+          displayList.length === 0 && styles.centered,
           { paddingBottom: Platform.OS === 'web' ? 84 : insets.bottom + 16 },
         ]}
         showsVerticalScrollIndicator={false}
-        scrollEnabled={list.length > 0}
+        scrollEnabled={displayList.length > 0}
         ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons
-              name={filter ? 'funnel-outline' : 'checkmark-circle-outline'}
-              size={52}
-              color={colors.mutedForeground}
-            />
-            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
-              {filter
-                ? `Нет книг за ${filterLabel}`
-                : 'Нет прочитанных книг'}
-            </Text>
-            <Text style={[styles.emptySubtitle, { color: colors.mutedForeground }]}>
-              {filter
-                ? 'Попробуйте другой месяц или год'
-                : 'Здесь появятся прочитанные книги'}
-            </Text>
-            {filter && (
-              <TouchableOpacity
-                style={[styles.clearBtn, { borderColor: colors.border }]}
-                onPress={() => setFilter(null)}
-                activeOpacity={0.7}
-              >
-                <Text style={[styles.clearBtnLabel, { color: colors.foreground }]}>
-                  Сбросить фильтр
-                </Text>
-              </TouchableOpacity>
-            )}
-          </View>
+          searchQuery.trim() ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="search-outline" size={52} color={colors.mutedForeground} />
+              <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
+                Ничего не найдено
+              </Text>
+              <Text style={[styles.emptySubtitle, { color: colors.mutedForeground }]}>
+                Попробуйте другой запрос
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <Ionicons
+                name={filter ? 'funnel-outline' : 'checkmark-circle-outline'}
+                size={52}
+                color={colors.mutedForeground}
+              />
+              <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
+                {filter ? `Нет книг за ${filterLabel}` : 'Нет прочитанных книг'}
+              </Text>
+              <Text style={[styles.emptySubtitle, { color: colors.mutedForeground }]}>
+                {filter ? 'Попробуйте другой месяц или год' : 'Здесь появятся прочитанные книги'}
+              </Text>
+              {filter && (
+                <TouchableOpacity
+                  style={[styles.clearBtn, { borderColor: colors.border }]}
+                  onPress={() => setFilter(null)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.clearBtnLabel, { color: colors.foreground }]}>
+                    Сбросить фильтр
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )
         }
       />
 

@@ -10,6 +10,13 @@
   "books": {
     "60e276b7-4943-44e9-a931-f50cfd0a9778": [
       {
+        "id": "87986112-03e7-45c8-b29f-97ee1c643db9",
+        "title": "много много мнооо текта",
+        "author": "набоковр",
+        "status": "want-to-read",
+        "addedAt": 1783498843166
+      },
+      {
         "id": "92c39bea-4c35-4efa-974b-7395d003fd20",
         "title": "Правда о деле Гарри Квебета",
         "author": "Жоэль Диккер",
@@ -93,8 +100,9 @@
         "id": "78a76c40-d06d-46f5-a81a-6f2cc3a817e2",
         "title": "Там где раки поют",
         "author": "Оуэнс",
-        "status": "want-to-read",
-        "addedAt": 1783421238032
+        "status": "reading",
+        "addedAt": 1783421238032,
+        "startedReadingAt": 1783499297161
       },
       {
         "id": "e20ff4d5-8c78-4eda-9360-6d6f68cc2c20",

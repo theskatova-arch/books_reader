@@ -16,6 +16,7 @@ import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
 import { RandomPickerModal } from '@/components/RandomPickerModal';
 import { HeaderMenu } from '@/components/HeaderMenu';
+import { SearchBar } from '@/components/SearchBar';
 
 function pluralBooks(n: number): string {
   const mod10 = n % 10;
@@ -33,10 +34,22 @@ export default function WantToReadScreen() {
   const { logout, username } = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
   const [pickerVisible, setPickerVisible] = useState(false);
+  const [searchVisible, setSearchVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const list = books
     .filter((b) => b.status === 'want-to-read')
     .sort((a, b) => b.addedAt - a.addedAt);
+
+  const displayList = searchQuery.trim()
+    ? list.filter((b) => {
+        const q = searchQuery.toLowerCase();
+        return (
+          b.title.toLowerCase().includes(q) ||
+          (b.author?.toLowerCase().includes(q) ?? false)
+        );
+      })
+    : list;
 
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
 
@@ -60,57 +73,81 @@ export default function WantToReadScreen() {
             {pluralBooks(list.length)}
           </Text>
         </View>
-        <HeaderMenu
-          topOffset={topPad + 78}
-          items={[
-            {
-              label: 'Добавить книгу',
-              icon: 'add-circle-outline',
-              onPress: () => setModalVisible(true),
-            },
-            {
-              label: 'Случайная книга',
-              icon: 'shuffle',
-              onPress: () => setPickerVisible(true),
-              hidden: list.length === 0,
-            },
-            {
-              label: 'Выйти',
-              icon: 'log-out-outline',
-              onPress: () => logout(),
-              destructive: true,
-            },
-          ]}
-        />
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={[styles.iconBtn, { borderColor: colors.border }]}
+            onPress={() => setSearchVisible(true)}
+            activeOpacity={0.75}
+            hitSlop={8}
+          >
+            <Ionicons name="search-outline" size={20} color={colors.foreground} />
+          </TouchableOpacity>
+          <HeaderMenu
+            topOffset={topPad + 78}
+            items={[
+              {
+                label: 'Добавить книгу',
+                icon: 'add-circle-outline',
+                onPress: () => setModalVisible(true),
+              },
+              {
+                label: 'Случайная книга',
+                icon: 'shuffle',
+                onPress: () => setPickerVisible(true),
+                hidden: list.length === 0,
+              },
+              {
+                label: 'Выйти',
+                icon: 'log-out-outline',
+                onPress: () => logout(),
+                destructive: true,
+              },
+            ]}
+          />
+        </View>
       </View>
 
+      {searchVisible && (
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onClose={() => { setSearchVisible(false); setSearchQuery(''); }}
+        />
+      )}
+
       <FlatList
-        data={list}
+        data={displayList}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => <BookCard book={item} />}
         contentContainerStyle={[
           styles.listContent,
-          list.length === 0 && styles.centered,
+          displayList.length === 0 && styles.centered,
           { paddingBottom: Platform.OS === 'web' ? 84 : insets.bottom + 16 },
         ]}
         showsVerticalScrollIndicator={false}
-        scrollEnabled={list.length > 0}
+        scrollEnabled={displayList.length > 0}
         ListEmptyComponent={
-          <View style={styles.emptyState}>
-            <Ionicons
-              name="bookmark-outline"
-              size={52}
-              color={colors.mutedForeground}
-            />
-            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
-              Список пуст
-            </Text>
-            <Text
-              style={[styles.emptySubtitle, { color: colors.mutedForeground }]}
-            >
-              Нажмите +, чтобы добавить первую книгу
-            </Text>
-          </View>
+          searchQuery.trim() ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="search-outline" size={52} color={colors.mutedForeground} />
+              <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
+                Ничего не найдено
+              </Text>
+              <Text style={[styles.emptySubtitle, { color: colors.mutedForeground }]}>
+                Попробуйте другой запрос
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <Ionicons name="bookmark-outline" size={52} color={colors.mutedForeground} />
+              <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
+                Список пуст
+              </Text>
+              <Text style={[styles.emptySubtitle, { color: colors.mutedForeground }]}>
+                Нажмите +, чтобы добавить первую книгу
+              </Text>
+            </View>
+          )
         }
       />
 
