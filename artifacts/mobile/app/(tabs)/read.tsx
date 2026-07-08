@@ -46,7 +46,9 @@ export default function ReadScreen() {
   const [pickerVisible, setPickerVisible] = useState(false);
   const [filter, setFilter] = useState<ActiveFilter | null>(null);
 
-  const allRead = books.filter((b) => b.status === 'read');
+  const allRead = books
+    .filter((b) => b.status === 'read')
+    .sort((a, b) => (b.finishedAt ?? b.addedAt) - (a.finishedAt ?? a.addedAt));
 
   const availableYears = useMemo(() => {
     const set = new Set<number>();

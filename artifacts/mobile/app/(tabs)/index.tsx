@@ -34,7 +34,9 @@ export default function WantToReadScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [pickerVisible, setPickerVisible] = useState(false);
 
-  const list = books.filter((b) => b.status === 'want-to-read');
+  const list = books
+    .filter((b) => b.status === 'want-to-read')
+    .sort((a, b) => b.addedAt - a.addedAt);
 
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
 

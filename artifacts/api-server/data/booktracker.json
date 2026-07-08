@@ -130,8 +130,9 @@
         "id": "adfb160b-1be8-42d5-a592-db8c37aa7bd7",
         "title": "Три любви",
         "author": "Кронин",
-        "status": "want-to-read",
-        "addedAt": 1783420965581
+        "status": "reading",
+        "addedAt": 1783420965581,
+        "startedReadingAt": 1783498713466
       },
       {
         "id": "2fb14136-11a0-4b13-8765-052287e1c996",

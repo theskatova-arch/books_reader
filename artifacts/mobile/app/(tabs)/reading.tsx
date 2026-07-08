@@ -32,7 +32,9 @@ export default function ReadingScreen() {
   const { logout } = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
 
-  const list = books.filter((b) => b.status === 'reading');
+  const list = books
+    .filter((b) => b.status === 'reading')
+    .sort((a, b) => (b.startedReadingAt ?? b.addedAt) - (a.startedReadingAt ?? a.addedAt));
 
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
 
