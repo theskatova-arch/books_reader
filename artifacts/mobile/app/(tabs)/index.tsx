@@ -15,6 +15,7 @@ import { useAuth } from '@/context/AuthContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
 import { RandomPickerModal } from '@/components/RandomPickerModal';
+import { HeaderMenu } from '@/components/HeaderMenu';
 
 function pluralBooks(n: number): string {
   const mod10 = n % 10;
@@ -57,33 +58,28 @@ export default function WantToReadScreen() {
             {pluralBooks(list.length)}
           </Text>
         </View>
-        <View style={styles.headerActions}>
-          <TouchableOpacity
-            style={[styles.iconBtn, { borderColor: colors.border }]}
-            onPress={() => logout()}
-            activeOpacity={0.75}
-            hitSlop={8}
-          >
-            <Ionicons name="log-out-outline" size={20} color={colors.mutedForeground} />
-          </TouchableOpacity>
-          {list.length > 0 && (
-            <TouchableOpacity
-              style={[styles.iconBtn, { borderColor: colors.primary }]}
-              onPress={() => setPickerVisible(true)}
-              activeOpacity={0.75}
-              hitSlop={8}
-            >
-              <Ionicons name="shuffle" size={20} color={colors.primary} />
-            </TouchableOpacity>
-          )}
-          <TouchableOpacity
-            style={[styles.addBtn, { backgroundColor: colors.primary }]}
-            onPress={() => setModalVisible(true)}
-            activeOpacity={0.85}
-          >
-            <Ionicons name="add" size={22} color={colors.primaryForeground} />
-          </TouchableOpacity>
-        </View>
+        <HeaderMenu
+          topOffset={topPad + 78}
+          items={[
+            {
+              label: 'Добавить книгу',
+              icon: 'add-circle-outline',
+              onPress: () => setModalVisible(true),
+            },
+            {
+              label: 'Случайная книга',
+              icon: 'shuffle',
+              onPress: () => setPickerVisible(true),
+              hidden: list.length === 0,
+            },
+            {
+              label: 'Выйти',
+              icon: 'log-out-outline',
+              onPress: () => logout(),
+              destructive: true,
+            },
+          ]}
+        />
       </View>
 
       <FlatList

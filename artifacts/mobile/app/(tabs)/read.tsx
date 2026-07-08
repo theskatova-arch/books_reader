@@ -15,6 +15,7 @@ import { useAuth } from '@/context/AuthContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
 import { MonthYearPickerModal } from '@/components/MonthYearPickerModal';
+import { HeaderMenu } from '@/components/HeaderMenu';
 
 const MONTHS_SHORT = [
   'Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн',
@@ -94,46 +95,27 @@ export default function ReadScreen() {
           </Text>
         </View>
 
-        <View style={styles.headerRight}>
-          <TouchableOpacity
-            style={[
-              styles.filterBtn,
-              {
-                backgroundColor: filter ? colors.primary : colors.card,
-                borderColor: filter ? colors.primary : colors.border,
-              },
-            ]}
-            onPress={() => setPickerVisible(true)}
-            activeOpacity={0.8}
-          >
-            <Ionicons
-              name={filter ? 'funnel' : 'funnel-outline'}
-              size={14}
-              color={filter ? colors.primaryForeground : colors.foreground}
-            />
-            {filterLabel && (
-              <Text style={[styles.filterBtnLabel, { color: colors.primaryForeground }]}>
-                {filterLabel}
-              </Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.iconBtn, { borderColor: colors.border }]}
-            onPress={() => logout()}
-            activeOpacity={0.75}
-            hitSlop={8}
-          >
-            <Ionicons name="log-out-outline" size={20} color={colors.mutedForeground} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.addBtn, { backgroundColor: colors.primary }]}
-            onPress={() => setModalVisible(true)}
-            activeOpacity={0.85}
-          >
-            <Ionicons name="add" size={22} color={colors.primaryForeground} />
-          </TouchableOpacity>
-        </View>
+        <HeaderMenu
+          topOffset={topPad + 78}
+          items={[
+            {
+              label: 'Добавить книгу',
+              icon: 'add-circle-outline',
+              onPress: () => setModalVisible(true),
+            },
+            {
+              label: filter ? `Фильтр: ${filterLabel}` : 'Фильтр по месяцу',
+              icon: filter ? 'funnel' : 'funnel-outline',
+              onPress: () => setPickerVisible(true),
+            },
+            {
+              label: 'Выйти',
+              icon: 'log-out-outline',
+              onPress: () => logout(),
+              destructive: true,
+            },
+          ]}
+        />
       </View>
 
       <FlatList
