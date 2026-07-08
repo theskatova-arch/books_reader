@@ -14,6 +14,7 @@ import { useBooks } from '@/context/BooksContext';
 import { useAuth } from '@/context/AuthContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
+import { RandomPickerModal } from '@/components/RandomPickerModal';
 
 function pluralBooks(n: number): string {
   const mod10 = n % 10;
@@ -27,9 +28,10 @@ function pluralBooks(n: number): string {
 export default function WantToReadScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { books } = useBooks();
+  const { books, moveBook } = useBooks();
   const { logout, username } = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
+  const [pickerVisible, setPickerVisible] = useState(false);
 
   const list = books.filter((b) => b.status === 'want-to-read');
 
@@ -64,6 +66,16 @@ export default function WantToReadScreen() {
           >
             <Ionicons name="log-out-outline" size={20} color={colors.mutedForeground} />
           </TouchableOpacity>
+          {list.length > 0 && (
+            <TouchableOpacity
+              style={[styles.iconBtn, { borderColor: colors.primary }]}
+              onPress={() => setPickerVisible(true)}
+              activeOpacity={0.75}
+              hitSlop={8}
+            >
+              <Ionicons name="shuffle" size={20} color={colors.primary} />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             style={[styles.addBtn, { backgroundColor: colors.primary }]}
             onPress={() => setModalVisible(true)}
@@ -108,6 +120,16 @@ export default function WantToReadScreen() {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         targetStatus="want-to-read"
+      />
+
+      <RandomPickerModal
+        visible={pickerVisible}
+        books={list}
+        onStartReading={(book) => {
+          moveBook(book.id, 'reading');
+          setPickerVisible(false);
+        }}
+        onClose={() => setPickerVisible(false)}
       />
     </View>
   );
