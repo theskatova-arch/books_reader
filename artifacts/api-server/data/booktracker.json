@@ -77,8 +77,9 @@
         "id": "c67b0b42-3876-4869-a7ea-0cbe978e0a76",
         "title": "Сколько стоит человек",
         "author": "Керсновская",
-        "status": "want-to-read",
-        "addedAt": 1783421289207
+        "status": "reading",
+        "addedAt": 1783421289207,
+        "startedReadingAt": 1783428039873
       },
       {
         "id": "9fb20976-881b-4a2c-9f09-b6714bdd5d6b",
@@ -112,9 +113,10 @@
         "id": "2ebd8472-5709-4d36-855e-7e5540b435ce",
         "title": "Бремя страстей человеческих",
         "author": "Моэм",
-        "status": "reading",
+        "status": "read",
         "addedAt": 1783421130899,
-        "startedReadingAt": 1783421330850
+        "startedReadingAt": 1783421330850,
+        "finishedAt": 1783428065727
       },
       {
         "id": "0791640d-f264-4560-967d-e5fdd543f187",

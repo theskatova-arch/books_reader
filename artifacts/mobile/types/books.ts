@@ -8,4 +8,6 @@ export interface Book {
   addedAt: number;
   startedReadingAt?: number;
   finishedAt?: number;
+  /** Optional reader's note left after finishing the book */
+  comment?: string;
 }

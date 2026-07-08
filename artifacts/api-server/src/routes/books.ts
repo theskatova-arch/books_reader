@@ -58,8 +58,8 @@ router.put("/:id", (req, res) => {
     return;
   }
 
-  const updates = req.body as Partial<BookRecord>;
-  const allowedKeys: (keyof BookRecord)[] = [
+  const updates = req.body as Partial<BookRecord & { comment: string | null }>;
+  const scalarKeys: (keyof BookRecord)[] = [
     "title",
     "author",
     "status",
@@ -68,12 +68,31 @@ router.put("/:id", (req, res) => {
   ];
 
   const updated: BookRecord = { ...books[idx]! };
-  for (const key of allowedKeys) {
+  for (const key of scalarKeys) {
     if (key in updates) {
       // @ts-expect-error dynamic assignment
       updated[key] = updates[key];
     }
   }
+
+  // Handle comment separately: null or empty string clears it; otherwise validate and trim.
+  if ("comment" in updates) {
+    const raw = updates.comment;
+    if (raw === null || raw === "" || raw === undefined) {
+      delete updated.comment;
+    } else if (typeof raw === "string") {
+      const trimmed = raw.trim();
+      if (trimmed.length > 500) {
+        res.status(400).json({ error: "Отзыв не должен превышать 500 символов" });
+        return;
+      }
+      updated.comment = trimmed;
+    } else {
+      res.status(400).json({ error: "Отзыв должен быть строкой" });
+      return;
+    }
+  }
+
   books[idx] = updated;
   saveBooks(req.user!.userId, books);
 

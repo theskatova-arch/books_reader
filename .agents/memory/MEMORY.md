@@ -1,0 +1,1 @@
+- [Book comment clear bug](comment-feature.md) — null-vs-undefined JSON drop; server must explicitly handle null to clear optional fields.

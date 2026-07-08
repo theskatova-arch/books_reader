@@ -94,6 +94,7 @@ export interface UpdateBookPayload {
   status?: BookStatus;
   startedReadingAt?: number;
   finishedAt?: number;
+  comment?: string | null;
 }
 
 export const booksApi = {

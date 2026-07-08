@@ -20,6 +20,7 @@ interface BooksContextType {
     id: string,
     fields: { startedReadingAt?: number; finishedAt?: number },
   ) => Promise<void>;
+  updateComment: (id: string, comment: string | null) => Promise<void>;
   isLoading: boolean;
   error: string | null;
   reload: () => Promise<void>;
@@ -143,9 +144,31 @@ export function BooksProvider({ children }: { children: React.ReactNode }) {
     [books],
   );
 
+  const updateComment = useCallback(
+    async (id: string, comment: string | null) => {
+      const current = books.find((b) => b.id === id);
+      if (!current) return;
+
+      setBooks((prev) =>
+        prev.map((b) =>
+          b.id === id ? { ...b, comment: comment ?? undefined } : b,
+        ),
+      );
+      try {
+        // Pass comment directly — null is valid JSON and tells the server to clear the field.
+        const updated = await booksApi.update(id, { comment });
+        setBooks((prev) => prev.map((b) => (b.id === id ? updated : b)));
+      } catch {
+        setBooks((prev) => prev.map((b) => (b.id === id ? current : b)));
+        throw new Error('Не удалось сохранить отзыв');
+      }
+    },
+    [books],
+  );
+
   return (
     <BooksContext.Provider
-      value={{ books, addBook, moveBook, deleteBook, updateDates, isLoading, error, reload }}
+      value={{ books, addBook, moveBook, deleteBook, updateDates, updateComment, isLoading, error, reload }}
     >
       {children}
     </BooksContext.Provider>

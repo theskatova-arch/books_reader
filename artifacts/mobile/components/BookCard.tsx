@@ -13,6 +13,7 @@ import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { Book, BookStatus, useBooks } from '@/context/BooksContext';
 import { EditDateModal } from '@/components/EditDateModal';
+import { CommentModal } from '@/components/CommentModal';
 
 interface BookCardProps {
   book: Book;
@@ -76,10 +77,11 @@ function DateChip({
 
 export function BookCard({ book }: BookCardProps) {
   const colors = useColors();
-  const { moveBook, deleteBook, updateDates } = useBooks();
+  const { moveBook, deleteBook, updateDates, updateComment } = useBooks();
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const [editingField, setEditingField] = useState<EditingField | null>(null);
+  const [commentVisible, setCommentVisible] = useState(false);
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, { toValue: 0.97, useNativeDriver: true }).start();
@@ -107,6 +109,16 @@ export function BookCard({ book }: BookCardProps) {
     if (!editingField) return;
     updateDates(book.id, { [editingField]: d.getTime() });
     setEditingField(null);
+  };
+
+  const handleCommentSave = (text: string) => {
+    updateComment(book.id, text || null);
+    setCommentVisible(false);
+  };
+
+  const handleCommentClear = () => {
+    updateComment(book.id, null);
+    setCommentVisible(false);
   };
 
   const editingDate =
@@ -219,6 +231,40 @@ export function BookCard({ book }: BookCardProps) {
               </Text>
             </View>
           )}
+
+          {/* Comment section — only for finished books */}
+          {book.status === 'read' && (
+            book.comment ? (
+              <TouchableOpacity
+                style={[styles.commentBox, { backgroundColor: colors.secondary, borderColor: colors.border }]}
+                onPress={() => setCommentVisible(true)}
+                activeOpacity={0.75}
+              >
+                <View style={styles.commentHeader}>
+                  <Ionicons name="chatbubble-ellipses-outline" size={13} color={colors.primary} />
+                  <Text style={[styles.commentLabel, { color: colors.primary }]}>
+                    Отзыв
+                  </Text>
+                  <Ionicons name="pencil-outline" size={11} color={colors.mutedForeground} style={styles.commentEditIcon} />
+                </View>
+                <Text style={[styles.commentText, { color: colors.foreground }]} numberOfLines={3}>
+                  {book.comment}
+                </Text>
+              </TouchableOpacity>
+            ) : (
+              <TouchableOpacity
+                style={styles.addCommentBtn}
+                onPress={() => setCommentVisible(true)}
+                activeOpacity={0.7}
+                hitSlop={{ top: 4, bottom: 4 }}
+              >
+                <Ionicons name="add-circle-outline" size={14} color={colors.mutedForeground} />
+                <Text style={[styles.addCommentLabel, { color: colors.mutedForeground }]}>
+                  Добавить отзыв
+                </Text>
+              </TouchableOpacity>
+            )
+          )}
         </Animated.View>
       </Pressable>
 
@@ -231,6 +277,15 @@ export function BookCard({ book }: BookCardProps) {
           onCancel={() => setEditingField(null)}
         />
       )}
+
+      <CommentModal
+        visible={commentVisible}
+        initialComment={book.comment}
+        bookTitle={book.title}
+        onConfirm={handleCommentSave}
+        onClear={handleCommentClear}
+        onCancel={() => setCommentVisible(false)}
+      />
     </>
   );
 }
@@ -314,5 +369,42 @@ const styles = StyleSheet.create({
   finishedLabel: {
     fontSize: 12,
     fontFamily: 'Inter_500Medium',
+  },
+  commentBox: {
+    marginTop: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    gap: 6,
+  },
+  commentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
+  commentLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter_600SemiBold',
+    flex: 1,
+  },
+  commentEditIcon: {
+    marginTop: 1,
+  },
+  commentText: {
+    fontSize: 13,
+    fontFamily: 'Inter_400Regular',
+    lineHeight: 19,
+  },
+  addCommentBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 10,
+    alignSelf: 'flex-start',
+  },
+  addCommentLabel: {
+    fontSize: 12,
+    fontFamily: 'Inter_400Regular',
   },
 });

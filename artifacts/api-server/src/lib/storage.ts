@@ -20,6 +20,7 @@ export interface BookRecord {
   addedAt: number;
   startedReadingAt?: number;
   finishedAt?: number;
+  comment?: string;
 }
 
 interface DataStore {
