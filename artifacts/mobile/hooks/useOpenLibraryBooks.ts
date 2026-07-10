@@ -9,10 +9,17 @@ export interface OpenLibraryBook {
 }
 
 const PAGE_SIZE = 20;
-// Restricts results to Russian-language fiction so titles/authors render
-// in Russian by default (plain "&lang=ru" only affects ranking, not the
-// language of the returned titles).
-const QUERY = 'subject:"Russian fiction"';
+// Strict filter baked into the query itself, per Open Library's own
+// convention (e.g. "война и мир language:rus") — excludes works that
+// have no Russian edition, rather than just biasing ranking.
+const QUERY = 'subject:"Russian fiction" language:rus';
+
+// Open Library's search index still returns the work's canonical title
+// (often the English translation title) even when it has a matching
+// Russian edition, so "language:rus" alone doesn't guarantee a Russian
+// title string. As a strict client-side backstop, drop any result whose
+// title has no Cyrillic characters at all.
+const CYRILLIC_RE = /[\u0400-\u04FF]/;
 
 interface SearchDoc {
   key: string;
@@ -72,20 +79,25 @@ export function useOpenLibraryBooks() {
     try {
       const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(
         QUERY,
-      )}&lang=ru&sort=rating&page=${nextPage}&limit=${PAGE_SIZE}&fields=key,title,author_name,cover_i,first_publish_year`;
+      )}&sort=rating&page=${nextPage}&limit=${PAGE_SIZE}&fields=key,title,author_name,cover_i,first_publish_year`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Open Library вернул ошибку ${res.status}`);
       const data: SearchResponse = await res.json();
       if (!isMounted.current) return;
 
-      const newBooks = data.docs.map(toBook);
+      const newBooks = data.docs
+        .filter((doc) => CYRILLIC_RE.test(doc.title))
+        .map(toBook);
       setBooks((prev) => {
         if (nextPage === 1) return newBooks;
         const seen = new Set(prev.map((b) => b.key));
         return [...prev, ...newBooks.filter((b) => !seen.has(b.key))];
       });
       setPage(nextPage);
-      setHasMore(newBooks.length === PAGE_SIZE && nextPage * PAGE_SIZE < data.numFound);
+      // Base "hasMore" on the raw (unfiltered) page size — the Cyrillic
+      // filter above can shrink a page below PAGE_SIZE even when Open
+      // Library still has more underlying results to page through.
+      setHasMore(data.docs.length === PAGE_SIZE && nextPage * PAGE_SIZE < data.numFound);
     } catch (e) {
       if (!isMounted.current) return;
       setError(e instanceof Error ? e.message : 'Не удалось загрузить книги');
