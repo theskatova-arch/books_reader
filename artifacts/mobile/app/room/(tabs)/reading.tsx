@@ -15,6 +15,7 @@ import { useAuth } from '@/context/AuthContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
 import { HeaderMenu } from '@/components/HeaderMenu';
+import { BackToHomeButton } from '@/components/BackToHomeButton';
 
 function pluralBooks(n: number): string {
   const mod10 = n % 10;
@@ -40,11 +41,12 @@ export default function ReadingScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <BackToHomeButton topPad={topPad} />
       <View
         style={[
           styles.header,
           {
-            paddingTop: topPad + 12,
+            paddingTop: 8,
             borderBottomColor: colors.border,
             backgroundColor: colors.background,
           },
@@ -59,7 +61,7 @@ export default function ReadingScreen() {
           </Text>
         </View>
         <HeaderMenu
-          topOffset={topPad + 78}
+          topOffset={topPad + 114}
           items={[
             {
               label: 'Добавить книгу',

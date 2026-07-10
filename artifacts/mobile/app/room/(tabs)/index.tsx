@@ -17,6 +17,7 @@ import { AddBookModal } from '@/components/AddBookModal';
 import { RandomPickerModal } from '@/components/RandomPickerModal';
 import { HeaderMenu } from '@/components/HeaderMenu';
 import { SearchBar } from '@/components/SearchBar';
+import { BackToHomeButton } from '@/components/BackToHomeButton';
 
 function pluralBooks(n: number): string {
   const mod10 = n % 10;
@@ -55,11 +56,12 @@ export default function WantToReadScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <BackToHomeButton topPad={topPad} />
       <View
         style={[
           styles.header,
           {
-            paddingTop: topPad + 12,
+            paddingTop: 8,
             borderBottomColor: colors.border,
             backgroundColor: colors.background,
           },
@@ -83,7 +85,7 @@ export default function WantToReadScreen() {
             <Ionicons name="search-outline" size={20} color={colors.foreground} />
           </TouchableOpacity>
           <HeaderMenu
-            topOffset={topPad + 78}
+            topOffset={topPad + 114}
             items={[
               {
                 label: 'Добавить книгу',

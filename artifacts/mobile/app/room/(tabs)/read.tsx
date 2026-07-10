@@ -17,6 +17,7 @@ import { AddBookModal } from '@/components/AddBookModal';
 import { MonthYearPickerModal } from '@/components/MonthYearPickerModal';
 import { HeaderMenu } from '@/components/HeaderMenu';
 import { SearchBar } from '@/components/SearchBar';
+import { BackToHomeButton } from '@/components/BackToHomeButton';
 
 const MONTHS_SHORT = [
   'Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн',
@@ -88,12 +89,13 @@ export default function ReadScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <BackToHomeButton topPad={topPad} />
       {/* Header */}
       <View
         style={[
           styles.header,
           {
-            paddingTop: topPad + 12,
+            paddingTop: 8,
             borderBottomColor: colors.border,
             backgroundColor: colors.background,
           },
@@ -120,7 +122,7 @@ export default function ReadScreen() {
             <Ionicons name="search-outline" size={20} color={colors.foreground} />
           </TouchableOpacity>
           <HeaderMenu
-            topOffset={topPad + 78}
+            topOffset={topPad + 114}
             items={[
               {
                 label: 'Добавить книгу',
