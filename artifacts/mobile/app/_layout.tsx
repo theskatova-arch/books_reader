@@ -49,16 +49,25 @@ function AppNavigator() {
     // Not authenticated — only login is reachable
     return (
       <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
         <Stack.Screen name="login" />
-        <Stack.Screen name="(tabs)" redirect />
+        <Stack.Screen name="home" redirect />
+        <Stack.Screen name="room/(tabs)" redirect />
+        <Stack.Screen name="library" redirect />
       </Stack>
     );
   }
 
-  // Authenticated — tabs are home, login redirects away
+  // Authenticated — the "home" chooser screen is the entry point,
+  // from which the user picks "Моя комната" (tabs) or "Библиотека".
+  // "index" (the literal "/" route) redirects to "home" so that a cold
+  // start or root URL cannot bypass the chooser and land on the tabs.
   return (
     <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="index" />
+      <Stack.Screen name="home" />
+      <Stack.Screen name="room/(tabs)" />
+      <Stack.Screen name="library" />
       <Stack.Screen name="login" redirect />
     </Stack>
   );
