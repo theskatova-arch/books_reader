@@ -71,7 +71,7 @@ export function useOpenLibraryBooks() {
     try {
       const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(
         QUERY,
-      )}&sort=rating&page=${nextPage}&limit=${PAGE_SIZE}&fields=key,title,author_name,cover_i,first_publish_year`;
+      )}&lang=ru&sort=rating&page=${nextPage}&limit=${PAGE_SIZE}&fields=key,title,author_name,cover_i,first_publish_year`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Open Library вернул ошибку ${res.status}`);
       const data: SearchResponse = await res.json();
