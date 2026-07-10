@@ -10,144 +10,32 @@
   "books": {
     "60e276b7-4943-44e9-a931-f50cfd0a9778": [
       {
-        "id": "87986112-03e7-45c8-b29f-97ee1c643db9",
-        "title": "много много мнооо текта",
-        "author": "набоковр",
+        "id": "ee644b27-c014-42bf-a796-effa905c2a76",
+        "title": "Тень и кость",
+        "author": "",
         "status": "want-to-read",
-        "addedAt": 1783498843166
+        "addedAt": 1783501552806
       },
       {
-        "id": "92c39bea-4c35-4efa-974b-7395d003fd20",
-        "title": "Правда о деле Гарри Квебета",
-        "author": "Жоэль Диккер",
-        "status": "read",
-        "addedAt": 1783421604991,
-        "finishedAt": 1773853200000,
-        "comment": "Очень понравилась"
-      },
-      {
-        "id": "b2fa9f59-cc58-4fde-b997-ad6434dd9220",
-        "title": "Дева в саду",
-        "author": "Байетт",
-        "status": "read",
-        "addedAt": 1783421557208,
-        "finishedAt": 1772384400000
-      },
-      {
-        "id": "b52ed5d2-82f2-4eeb-a49e-bbd50be2f145",
-        "title": "Центр тяжести",
-        "author": "Поляринов",
-        "status": "read",
-        "addedAt": 1783421525444,
-        "finishedAt": 1772298000000
-      },
-      {
-        "id": "f60ed5c3-8e49-45df-aa7b-4436dd85b7fb",
-        "title": "Повелитель мух",
-        "author": "Голдинг",
-        "status": "read",
-        "addedAt": 1783421492595,
-        "finishedAt": 1770397200000
-      },
-      {
-        "id": "322c78de-74ff-4273-859f-28fae220432b",
-        "title": "Ветер сквозь замочную скважину",
-        "author": "Стивен Кинг",
-        "status": "read",
-        "addedAt": 1783421446293,
-        "finishedAt": 1770397200000
-      },
-      {
-        "id": "0435469c-9271-418a-b80a-18a481e1b245",
-        "title": "Камера обскура",
-        "author": "Набоков",
-        "status": "read",
-        "addedAt": 1783421415620,
-        "finishedAt": 1767200400000
-      },
-      {
-        "id": "d41087ce-9047-4d9f-bfee-4fe219d04f85",
-        "title": "Скажи жизни Да",
-        "author": "Виктор Франкл",
-        "status": "reading",
-        "addedAt": 1783421379818,
-        "startedReadingAt": 1783421379818
-      },
-      {
-        "id": "97bddb1f-8b05-4dd0-8705-214fd493fd61",
-        "title": "Завет воды",
-        "author": "Абрахам Вергезе",
-        "status": "reading",
-        "addedAt": 1783421359455,
-        "startedReadingAt": 1783421359455
-      },
-      {
-        "id": "c67b0b42-3876-4869-a7ea-0cbe978e0a76",
-        "title": "Сколько стоит человек",
-        "author": "Керсновская",
-        "status": "reading",
-        "addedAt": 1783421289207,
-        "startedReadingAt": 1783428039873
-      },
-      {
-        "id": "9fb20976-881b-4a2c-9f09-b6714bdd5d6b",
-        "title": "Письма о добром",
-        "author": "Лихачев",
+        "id": "7f314272-4d93-408d-806b-4a7675d9072f",
+        "title": "Тысячеликая героиня",
+        "author": "",
         "status": "want-to-read",
-        "addedAt": 1783421250050
+        "addedAt": 1783501525275
       },
       {
-        "id": "78a76c40-d06d-46f5-a81a-6f2cc3a817e2",
-        "title": "Там где раки поют",
-        "author": "Оуэнс",
-        "status": "reading",
-        "addedAt": 1783421238032,
-        "startedReadingAt": 1783499297161
-      },
-      {
-        "id": "e20ff4d5-8c78-4eda-9360-6d6f68cc2c20",
-        "title": "Тысячеликий герой",
-        "author": "Джозеф Кэмпбелл",
+        "id": "863ae29d-202f-4312-ba96-92975714a044",
+        "title": "Танатонавты",
+        "author": "Вербер",
         "status": "want-to-read",
-        "addedAt": 1783421221630
+        "addedAt": 1783501092943
       },
       {
-        "id": "bcf70794-d6d5-4c89-b4d1-ff1db0c8884c",
-        "title": "Цветы для Элжернона",
-        "author": "Даниэль Киз",
-        "status": "want-to-read",
-        "addedAt": 1783421176289
-      },
-      {
-        "id": "2ebd8472-5709-4d36-855e-7e5540b435ce",
+        "id": "f75e2f51-98ec-40f8-ba7e-2d60b3d1ae9e",
         "title": "Бремя страстей человеческих",
         "author": "Моэм",
-        "status": "read",
-        "addedAt": 1783421130899,
-        "startedReadingAt": 1783421330850,
-        "finishedAt": 1783428065727
-      },
-      {
-        "id": "0791640d-f264-4560-967d-e5fdd543f187",
-        "title": "Театр",
-        "author": "Моэм",
         "status": "want-to-read",
-        "addedAt": 1783421025949
-      },
-      {
-        "id": "adfb160b-1be8-42d5-a592-db8c37aa7bd7",
-        "title": "Три любви",
-        "author": "Кронин",
-        "status": "reading",
-        "addedAt": 1783420965581,
-        "startedReadingAt": 1783498713466
-      },
-      {
-        "id": "2fb14136-11a0-4b13-8765-052287e1c996",
-        "title": "Снар снарк",
-        "author": "Веркин",
-        "status": "want-to-read",
-        "addedAt": 1783420954446
+        "addedAt": 1783500970463
       }
     ]
   }
