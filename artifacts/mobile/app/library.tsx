@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Feather, Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 import { useOpenLibraryBooks, OpenLibraryBook } from '@/hooks/useOpenLibraryBooks';
@@ -16,12 +17,22 @@ import { useBooks } from '@/context/BooksContext';
 import { LibraryBookCard } from '@/components/LibraryBookCard';
 import { SearchBar } from '@/components/SearchBar';
 import { LibraryRandomPickerModal } from '@/components/LibraryRandomPickerModal';
+import { BackToHomeButton } from '@/components/BackToHomeButton';
+
+function pluralBooks(n: number): string {
+  const mod10 = n % 10;
+  const mod100 = n % 100;
+  if (mod100 >= 11 && mod100 <= 14) return `${n} книг`;
+  if (mod10 === 1) return `${n} книга`;
+  if (mod10 >= 2 && mod10 <= 4) return `${n} книги`;
+  return `${n} книг`;
+}
 
 export default function LibraryScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const styles = makeStyles(colors, insets.top, insets.bottom);
+  const styles = makeStyles(colors, insets.bottom);
 
   const { books, loading, loadingMore, error, loadMore, retry } = useOpenLibraryBooks();
   const { addBook } = useBooks();
@@ -44,17 +55,30 @@ export default function LibraryScreen() {
     addBook(book.title, book.author, 'want-to-read');
   };
 
+  const topPad = Platform.OS === 'web' ? 67 : insets.top;
+
   return (
     <View style={styles.root}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          activeOpacity={0.7}
-          onPress={() => router.replace('/home')}
-        >
-          <Feather name="chevron-left" size={22} color={colors.foreground} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Библиотека</Text>
+      <BackToHomeButton topPad={topPad} />
+
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: 8,
+            borderBottomColor: colors.border,
+            backgroundColor: colors.background,
+          },
+        ]}
+      >
+        <View>
+          <Text style={[styles.headerTitle, { color: colors.foreground }]}>
+            Библиотека
+          </Text>
+          <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>
+            {pluralBooks(books.length)}
+          </Text>
+        </View>
         <View style={styles.headerActions}>
           <TouchableOpacity
             style={[styles.iconBtn, { borderColor: colors.border }]}
@@ -150,32 +174,30 @@ export default function LibraryScreen() {
 
 function makeStyles(
   colors: ReturnType<typeof useColors>,
-  topInset: number,
   bottomInset: number,
 ) {
   return StyleSheet.create({
     root: {
       flex: 1,
       backgroundColor: colors.background,
-      paddingTop: topInset,
     },
     header: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'flex-end',
       justifyContent: 'space-between',
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-    },
-    backButton: {
-      width: 36,
-      height: 36,
-      alignItems: 'center',
-      justifyContent: 'center',
+      paddingHorizontal: 20,
+      paddingBottom: 14,
+      borderBottomWidth: StyleSheet.hairlineWidth,
     },
     headerTitle: {
-      fontSize: 17,
-      fontFamily: 'Inter_600SemiBold',
-      color: colors.foreground,
+      fontSize: 26,
+      fontFamily: 'Inter_700Bold',
+      lineHeight: 32,
+    },
+    headerSub: {
+      fontSize: 13,
+      fontFamily: 'Inter_400Regular',
+      marginTop: 2,
     },
     headerActions: {
       flexDirection: 'row',
@@ -183,9 +205,9 @@ function makeStyles(
       gap: 8,
     },
     iconBtn: {
-      width: 36,
-      height: 36,
-      borderRadius: 18,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
       borderWidth: StyleSheet.hairlineWidth,
       alignItems: 'center',
       justifyContent: 'center',
