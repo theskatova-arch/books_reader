@@ -43,8 +43,6 @@ export default function LibraryScreen() {
       })
     : books;
 
-  const pickerBooks = books.filter((b) => !addedKeys.has(b.key));
-
   const handleAddToWantToRead = async (book: OpenLibraryBook): Promise<boolean> => {
     try {
       await addBook(book.title, book.author, 'want-to-read');
@@ -172,7 +170,7 @@ export default function LibraryScreen() {
 
       <LibraryRandomPickerModal
         visible={pickerVisible}
-        books={pickerBooks}
+        excludeKeys={addedKeys}
         onAddToWantToRead={handleAddToWantToRead}
         onClose={() => setPickerVisible(false)}
       />

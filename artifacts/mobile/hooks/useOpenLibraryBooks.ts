@@ -62,6 +62,68 @@ function toBook(doc: SearchDoc): OpenLibraryBook {
   };
 }
 
+const FIELDS = 'key,title,author_name,cover_i,first_publish_year,editions';
+
+// Open Library's search endpoint refuses to page arbitrarily deep into a
+// result set; cap how far we'll jump so a huge numFound doesn't produce a
+// page number the API rejects or times out on.
+const MAX_RANDOM_PAGE = 800;
+
+/**
+ * Picks one random book from across the *entire* Open Library catalog that
+ * matches our Russian-fiction query — not just the books already loaded
+ * into the paginated list. Jumps to a random page of the search index, then
+ * picks a random Cyrillic-titled result from that page, skipping any whose
+ * key is in `excludeKeys` (already added / recently shown). Retries a few
+ * times with a different random page if a page turns out to have no usable
+ * results after filtering.
+ */
+export async function pickRandomLibraryBook(
+  excludeKeys: Set<string> = new Set(),
+): Promise<OpenLibraryBook | null> {
+  let numFound: number | null = null;
+
+  const attempts = 5;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    try {
+      if (numFound == null) {
+        const countUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(
+          QUERY,
+        )}&limit=1&fields=key`;
+        const countRes = await fetch(countUrl);
+        if (!countRes.ok) throw new Error(`Open Library вернул ошибку ${countRes.status}`);
+        const countData: SearchResponse = await countRes.json();
+        numFound = countData.numFound;
+      }
+      if (!numFound || numFound <= 0) return null;
+
+      const maxPage = Math.min(Math.ceil(numFound / PAGE_SIZE), MAX_RANDOM_PAGE);
+      const page = 1 + Math.floor(Math.random() * maxPage);
+
+      const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(
+        QUERY,
+      )}&page=${page}&limit=${PAGE_SIZE}&fields=${FIELDS}&${EDITIONS_PARAMS}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`Open Library вернул ошибку ${res.status}`);
+      const data: SearchResponse = await res.json();
+
+      const candidates = data.docs
+        .filter((doc) => CYRILLIC_RE.test(resolveTitle(doc)) && !excludeKeys.has(doc.key))
+        .map(toBook);
+      if (candidates.length > 0) {
+        return candidates[Math.floor(Math.random() * candidates.length)]!;
+      }
+      // This page had no usable results after filtering — try another
+      // random page rather than giving up immediately.
+    } catch {
+      // Network/parse error on this attempt — fall through and retry, so a
+      // single flaky request doesn't fail the whole pick.
+    }
+  }
+
+  return null;
+}
+
 /**
  * Loads books from the Open Library search API one page (20 books) at a
  * time. Call `loadMore()` when the user scrolls near the bottom to fetch

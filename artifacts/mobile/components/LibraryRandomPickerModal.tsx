@@ -14,50 +14,23 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
-import { OpenLibraryBook } from '@/hooks/useOpenLibraryBooks';
+import { OpenLibraryBook, pickRandomLibraryBook } from '@/hooks/useOpenLibraryBooks';
 
 interface LibraryRandomPickerModalProps {
   visible: boolean;
-  books: OpenLibraryBook[];
+  /** Keys to never pick (e.g. already added to "Хочу прочитать"). */
+  excludeKeys: Set<string>;
   /** Resolves to true on success; the modal only shows "added" on success. */
   onAddToWantToRead: (book: OpenLibraryBook) => Promise<boolean>;
   onClose: () => void;
 }
 
-/**
- * Picks a random book, avoiding recently shown ones when the pool is large
- * enough to do so. `recentKeys` holds the last few picks (most recent last);
- * we exclude as much of that history as we can while still leaving at least
- * one book to choose from, so repeats become rare instead of "exclude only
- * the immediately previous pick".
- */
-function pickRandom(books: OpenLibraryBook[], recentKeys: string[] = []): OpenLibraryBook | null {
-  if (books.length === 0) return null;
-  if (books.length === 1) return books[0]!;
-
-  let pool = books;
-  // Try excluding the full recent history first, then shrink the exclusion
-  // window until at least one candidate remains.
-  for (let excludeCount = recentKeys.length; excludeCount >= 0; excludeCount--) {
-    const excluded = new Set(recentKeys.slice(recentKeys.length - excludeCount));
-    const filtered = books.filter((b) => !excluded.has(b.key));
-    if (filtered.length > 0) {
-      pool = filtered;
-      break;
-    }
-  }
-
-  return pool[Math.floor(Math.random() * pool.length)]!;
-}
-
-/** How many past picks to remember and avoid repeating, capped to leave choice. */
-function historyLimit(poolSize: number): number {
-  return Math.max(0, Math.min(poolSize - 1, 5));
-}
+/** How many past picks to remember and avoid repeating within one session. */
+const HISTORY_LIMIT = 8;
 
 export function LibraryRandomPickerModal({
   visible,
-  books,
+  excludeKeys,
   onAddToWantToRead,
   onClose,
 }: LibraryRandomPickerModalProps) {
@@ -69,21 +42,26 @@ export function LibraryRandomPickerModal({
   const [added, setAdded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [pickFailed, setPickFailed] = useState(false);
 
   const cardOpacity = useRef(new Animated.Value(0)).current;
   const cardTranslateY = useRef(new Animated.Value(24)).current;
   const cardScale = useRef(new Animated.Value(0.92)).current;
   const spinAnim = useRef(new Animated.Value(0)).current;
   const spinLoop = useRef<Animated.CompositeAnimation | null>(null);
-  const pickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isVisibleRef = useRef(false);
   const addRequestRef = useRef(0);
+  const pickRequestRef = useRef(0);
   const recentKeysRef = useRef<string[]>([]);
+  const excludeKeysRef = useRef(excludeKeys);
+
+  useEffect(() => {
+    excludeKeysRef.current = excludeKeys;
+  }, [excludeKeys]);
 
   const rememberPick = useCallback((book: OpenLibraryBook) => {
-    const limit = historyLimit(booksRef.current.length);
     const next = [...recentKeysRef.current, book.key];
-    recentKeysRef.current = limit > 0 ? next.slice(-limit) : [];
+    recentKeysRef.current = next.slice(-HISTORY_LIMIT);
   }, []);
 
   const revealCard = useCallback(() => {
@@ -131,10 +109,6 @@ export function LibraryRandomPickerModal({
   }, [spinAnim]);
 
   const cancelInFlight = useCallback(() => {
-    if (pickTimerRef.current != null) {
-      clearTimeout(pickTimerRef.current);
-      pickTimerRef.current = null;
-    }
     stopSpin();
     setSpinning(false);
   }, [stopSpin]);
@@ -143,40 +117,79 @@ export function LibraryRandomPickerModal({
     isVisibleRef.current = visible;
   }, [visible]);
 
-  const booksRef = useRef(books);
-  useEffect(() => {
-    booksRef.current = books;
-  }, [books]);
+  /**
+   * Fetches one random book from the whole Open Library catalog and, if
+   * this is still the most recent pick request and the modal is still
+   * open, applies it as the current pick. `minSpinMs` keeps the shuffle
+   * animation visible for a minimum duration so a fast response doesn't
+   * feel like a jump-cut.
+   */
+  const fetchAndApplyPick = useCallback(
+    async (minSpinMs: number) => {
+      const requestId = ++pickRequestRef.current;
+      const exclude = new Set([...excludeKeysRef.current, ...recentKeysRef.current]);
+      const startedAt = Date.now();
+
+      const result = await pickRandomLibraryBook(exclude);
+
+      const elapsed = Date.now() - startedAt;
+      if (elapsed < minSpinMs) {
+        await new Promise((resolve) => setTimeout(resolve, minSpinMs - elapsed));
+      }
+
+      // Ignore stale completions: modal may have closed/reopened, or
+      // another pick may have been triggered, while this was in flight.
+      if (pickRequestRef.current !== requestId || !isVisibleRef.current) return;
+
+      stopSpin();
+      setSpinning(false);
+
+      if (!result) {
+        setPickFailed(true);
+        return;
+      }
+      setPickFailed(false);
+      rememberPick(result);
+      setPicked(result);
+      revealCard();
+    },
+    [stopSpin, revealCard, rememberPick]
+  );
 
   useEffect(() => {
     if (visible) {
       setAdded(false);
       setFailed(false);
       setSaving(false);
+      setPickFailed(false);
       addRequestRef.current += 1;
       recentKeysRef.current = [];
-      const first = pickRandom(booksRef.current, recentKeysRef.current);
-      if (first) {
-        rememberPick(first);
-        setPicked(first);
-        revealCard();
-      }
+      setSpinning(true);
+      startSpin();
+      fetchAndApplyPick(600);
     } else {
       cancelInFlight();
+      pickRequestRef.current += 1;
       setSaving(false);
+      setPickFailed(false);
       addRequestRef.current += 1;
       setPicked(null);
     }
-  }, [visible, revealCard, cancelInFlight, rememberPick]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
 
   useEffect(() => {
     return () => {
       cancelInFlight();
+      // Invalidate any in-flight pick/add so a post-unmount resolution
+      // can never trigger a state update on this component.
+      pickRequestRef.current += 1;
+      addRequestRef.current += 1;
     };
   }, [cancelInFlight]);
 
   const handlePickAgain = useCallback(() => {
-    if (spinning || saving || booksRef.current.length < 2) return;
+    if (spinning || saving) return;
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
@@ -184,6 +197,7 @@ export function LibraryRandomPickerModal({
     setSpinning(true);
     setAdded(false);
     setFailed(false);
+    setPickFailed(false);
     startSpin();
 
     Animated.parallel([
@@ -191,22 +205,8 @@ export function LibraryRandomPickerModal({
       Animated.timing(cardTranslateY, { toValue: -20, duration: 180, useNativeDriver: true }),
     ]).start();
 
-    pickTimerRef.current = setTimeout(() => {
-      pickTimerRef.current = null;
-      if (!isVisibleRef.current) return;
-      stopSpin();
-      setSpinning(false);
-      const next = pickRandom(booksRef.current, recentKeysRef.current);
-      if (!next) {
-        // Pool became empty while the timer was running (e.g. all books
-        // got added or removed); keep the previous pick rather than crash.
-        return;
-      }
-      rememberPick(next);
-      setPicked(next);
-      revealCard();
-    }, 900);
-  }, [spinning, saving, startSpin, stopSpin, revealCard, cardOpacity, cardTranslateY, rememberPick]);
+    fetchAndApplyPick(900);
+  }, [spinning, saving, startSpin, cardOpacity, cardTranslateY, fetchAndApplyPick]);
 
   const handleAdd = useCallback(async () => {
     if (!picked || saving || added) return;
@@ -238,8 +238,6 @@ export function LibraryRandomPickerModal({
     inputRange: [0, 1],
     outputRange: ['0deg', '360deg'],
   });
-
-  const canPickAgain = books.length >= 2;
 
   return (
     <Modal
@@ -283,7 +281,7 @@ export function LibraryRandomPickerModal({
             <Ionicons name="dice-outline" size={36} color={colors.primary} />
           </Animated.View>
 
-          {picked && (
+          {picked && !pickFailed && (
             <Animated.View
               style={[
                 styles.bookCard,
@@ -319,68 +317,61 @@ export function LibraryRandomPickerModal({
           <Text
             style={[
               styles.hint,
-              { color: failed ? colors.destructive : colors.mutedForeground },
+              { color: failed || pickFailed ? colors.destructive : colors.mutedForeground },
             ]}
           >
             {spinning
               ? 'Ищем книгу...'
+              : pickFailed
+              ? 'Не удалось найти книгу. Попробуйте ещё раз'
               : saving
               ? 'Добавляем...'
               : failed
               ? 'Не удалось добавить. Попробуйте ещё раз'
               : added
               ? 'Добавлено в «Хочу прочитать»'
-              : canPickAgain
-              ? 'Не нравится? Попробуйте ещё раз'
-              : 'В списке только одна книга'}
+              : 'Не нравится? Попробуйте ещё раз'}
           </Text>
 
           <View style={styles.actions}>
-            <TouchableOpacity
-              style={[
-                styles.primaryBtn,
-                {
-                  backgroundColor: failed ? colors.destructive : colors.primary,
-                  opacity: spinning || saving || added ? 0.5 : 1,
-                },
-              ]}
-              onPress={handleAdd}
-              activeOpacity={0.85}
-              disabled={spinning || saving || added}
-            >
-              <Ionicons
-                name={failed ? 'refresh-outline' : 'bookmark-outline'}
-                size={18}
-                color={colors.primaryForeground}
-              />
-              <Text style={[styles.primaryBtnLabel, { color: colors.primaryForeground }]}>
-                {failed ? 'Повторить' : 'Хочу прочитать'}
-              </Text>
-            </TouchableOpacity>
+            {!pickFailed && (
+              <TouchableOpacity
+                style={[
+                  styles.primaryBtn,
+                  {
+                    backgroundColor: failed ? colors.destructive : colors.primary,
+                    opacity: spinning || saving || added || !picked ? 0.5 : 1,
+                  },
+                ]}
+                onPress={handleAdd}
+                activeOpacity={0.85}
+                disabled={spinning || saving || added || !picked}
+              >
+                <Ionicons
+                  name={failed ? 'refresh-outline' : 'bookmark-outline'}
+                  size={18}
+                  color={colors.primaryForeground}
+                />
+                <Text style={[styles.primaryBtnLabel, { color: colors.primaryForeground }]}>
+                  {failed ? 'Повторить' : 'Хочу прочитать'}
+                </Text>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               style={[
                 styles.secondaryBtn,
                 {
-                  borderColor: canPickAgain ? colors.primary : colors.border,
-                  opacity: spinning || saving || !canPickAgain ? 0.4 : 1,
+                  borderColor: colors.primary,
+                  opacity: spinning || saving ? 0.4 : 1,
                 },
               ]}
               onPress={handlePickAgain}
               activeOpacity={0.75}
-              disabled={spinning || saving || !canPickAgain}
+              disabled={spinning || saving}
             >
-              <Ionicons
-                name="refresh-outline"
-                size={18}
-                color={canPickAgain ? colors.primary : colors.mutedForeground}
-              />
-              <Text
-                style={[
-                  styles.secondaryBtnLabel,
-                  { color: canPickAgain ? colors.primary : colors.mutedForeground },
-                ]}
-              >
+              <Ionicons name="refresh-outline" size={18} color={colors.primary} />
+              <Text style={[styles.secondaryBtnLabel, { color: colors.primary }]}>
                 Искать снова
               </Text>
             </TouchableOpacity>
