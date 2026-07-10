@@ -19,7 +19,8 @@ import { OpenLibraryBook } from '@/hooks/useOpenLibraryBooks';
 interface LibraryRandomPickerModalProps {
   visible: boolean;
   books: OpenLibraryBook[];
-  onAddToWantToRead: (book: OpenLibraryBook) => void;
+  /** Resolves to true on success; the modal only shows "added" on success. */
+  onAddToWantToRead: (book: OpenLibraryBook) => Promise<boolean>;
   onClose: () => void;
 }
 
@@ -42,6 +43,8 @@ export function LibraryRandomPickerModal({
   const [picked, setPicked] = useState<OpenLibraryBook | null>(null);
   const [spinning, setSpinning] = useState(false);
   const [added, setAdded] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   const cardOpacity = useRef(new Animated.Value(0)).current;
   const cardTranslateY = useRef(new Animated.Value(24)).current;
@@ -50,6 +53,7 @@ export function LibraryRandomPickerModal({
   const spinLoop = useRef<Animated.CompositeAnimation | null>(null);
   const pickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isVisibleRef = useRef(false);
+  const addRequestRef = useRef(0);
 
   const revealCard = useCallback(() => {
     cardOpacity.setValue(0);
@@ -116,6 +120,9 @@ export function LibraryRandomPickerModal({
   useEffect(() => {
     if (visible) {
       setAdded(false);
+      setFailed(false);
+      setSaving(false);
+      addRequestRef.current += 1;
       if (booksRef.current.length > 0) {
         const first = pickRandom(booksRef.current);
         setPicked(first);
@@ -123,6 +130,8 @@ export function LibraryRandomPickerModal({
       }
     } else {
       cancelInFlight();
+      setSaving(false);
+      addRequestRef.current += 1;
       setPicked(null);
     }
   }, [visible, revealCard, cancelInFlight]);
@@ -134,13 +143,14 @@ export function LibraryRandomPickerModal({
   }, [cancelInFlight]);
 
   const handlePickAgain = useCallback(() => {
-    if (spinning || booksRef.current.length < 2) return;
+    if (spinning || saving || booksRef.current.length < 2) return;
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
     setSpinning(true);
     setAdded(false);
+    setFailed(false);
     startSpin();
 
     Animated.parallel([
@@ -159,16 +169,33 @@ export function LibraryRandomPickerModal({
       setSpinning(false);
       revealCard();
     }, 900);
-  }, [spinning, picked, startSpin, stopSpin, revealCard, cardOpacity, cardTranslateY]);
+  }, [spinning, saving, picked, startSpin, stopSpin, revealCard, cardOpacity, cardTranslateY]);
 
-  const handleAdd = useCallback(() => {
-    if (!picked) return;
+  const handleAdd = useCallback(async () => {
+    if (!picked || saving || added) return;
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    onAddToWantToRead(picked);
-    setAdded(true);
-  }, [picked, onAddToWantToRead]);
+    const requestId = ++addRequestRef.current;
+    const submittedBook = picked;
+    setSaving(true);
+    setFailed(false);
+    let ok = false;
+    try {
+      ok = await onAddToWantToRead(submittedBook);
+    } catch {
+      ok = false;
+    }
+    // Ignore stale completions: the modal may have been closed, reopened,
+    // or re-picked while this request was in flight.
+    if (addRequestRef.current !== requestId) return;
+    setSaving(false);
+    if (ok) {
+      setAdded(true);
+    } else {
+      setFailed(true);
+    }
+  }, [picked, saving, added, onAddToWantToRead]);
 
   const spinRotate = spinAnim.interpolate({
     inputRange: [0, 1],
@@ -252,9 +279,18 @@ export function LibraryRandomPickerModal({
             </Animated.View>
           )}
 
-          <Text style={[styles.hint, { color: colors.mutedForeground }]}>
+          <Text
+            style={[
+              styles.hint,
+              { color: failed ? colors.destructive : colors.mutedForeground },
+            ]}
+          >
             {spinning
               ? 'Ищем книгу...'
+              : saving
+              ? 'Добавляем...'
+              : failed
+              ? 'Не удалось добавить. Попробуйте ещё раз'
               : added
               ? 'Добавлено в «Хочу прочитать»'
               : canPickAgain
@@ -266,15 +302,22 @@ export function LibraryRandomPickerModal({
             <TouchableOpacity
               style={[
                 styles.primaryBtn,
-                { backgroundColor: colors.primary, opacity: spinning || added ? 0.5 : 1 },
+                {
+                  backgroundColor: failed ? colors.destructive : colors.primary,
+                  opacity: spinning || saving || added ? 0.5 : 1,
+                },
               ]}
               onPress={handleAdd}
               activeOpacity={0.85}
-              disabled={spinning || added}
+              disabled={spinning || saving || added}
             >
-              <Ionicons name="bookmark-outline" size={18} color={colors.primaryForeground} />
+              <Ionicons
+                name={failed ? 'refresh-outline' : 'bookmark-outline'}
+                size={18}
+                color={colors.primaryForeground}
+              />
               <Text style={[styles.primaryBtnLabel, { color: colors.primaryForeground }]}>
-                Хочу прочитать
+                {failed ? 'Повторить' : 'Хочу прочитать'}
               </Text>
             </TouchableOpacity>
 
@@ -283,12 +326,12 @@ export function LibraryRandomPickerModal({
                 styles.secondaryBtn,
                 {
                   borderColor: canPickAgain ? colors.primary : colors.border,
-                  opacity: spinning || !canPickAgain ? 0.4 : 1,
+                  opacity: spinning || saving || !canPickAgain ? 0.4 : 1,
                 },
               ]}
               onPress={handlePickAgain}
               activeOpacity={0.75}
-              disabled={spinning || !canPickAgain}
+              disabled={spinning || saving || !canPickAgain}
             >
               <Ionicons
                 name="refresh-outline"

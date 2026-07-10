@@ -19,15 +19,6 @@ import { SearchBar } from '@/components/SearchBar';
 import { LibraryRandomPickerModal } from '@/components/LibraryRandomPickerModal';
 import { BackToHomeButton } from '@/components/BackToHomeButton';
 
-function pluralBooks(n: number): string {
-  const mod10 = n % 10;
-  const mod100 = n % 100;
-  if (mod100 >= 11 && mod100 <= 14) return `${n} книг`;
-  if (mod10 === 1) return `${n} книга`;
-  if (mod10 >= 2 && mod10 <= 4) return `${n} книги`;
-  return `${n} книг`;
-}
-
 export default function LibraryScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -40,6 +31,7 @@ export default function LibraryScreen() {
   const [searchVisible, setSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [pickerVisible, setPickerVisible] = useState(false);
+  const [addedKeys, setAddedKeys] = useState<Set<string>>(new Set());
 
   const displayBooks = searchQuery.trim()
     ? books.filter((b) => {
@@ -51,8 +43,18 @@ export default function LibraryScreen() {
       })
     : books;
 
-  const handleAddToWantToRead = (book: OpenLibraryBook) => {
-    addBook(book.title, book.author, 'want-to-read');
+  const handleAddToWantToRead = async (book: OpenLibraryBook): Promise<boolean> => {
+    try {
+      await addBook(book.title, book.author, 'want-to-read');
+      setAddedKeys((prev) => {
+        const next = new Set(prev);
+        next.add(book.key);
+        return next;
+      });
+      return true;
+    } catch {
+      return false;
+    }
   };
 
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
@@ -74,9 +76,6 @@ export default function LibraryScreen() {
         <View>
           <Text style={[styles.headerTitle, { color: colors.foreground }]}>
             Библиотека
-          </Text>
-          <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>
-            {pluralBooks(books.length)}
           </Text>
         </View>
         <View style={styles.headerActions}>
@@ -125,7 +124,14 @@ export default function LibraryScreen() {
         <FlatList
           data={displayBooks}
           keyExtractor={(item: OpenLibraryBook) => item.key}
-          renderItem={({ item }) => <LibraryBookCard book={item} />}
+          renderItem={({ item }) => (
+            <LibraryBookCard
+              book={item}
+              added={addedKeys.has(item.key)}
+              onAdd={() => handleAddToWantToRead(item)}
+            />
+          )}
+          extraData={addedKeys}
           contentContainerStyle={[
             styles.listContent,
             displayBooks.length === 0 && styles.centered,
