@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -8,11 +8,14 @@ import {
   View,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Feather } from '@expo/vector-icons';
+import { Feather, Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 import { useOpenLibraryBooks, OpenLibraryBook } from '@/hooks/useOpenLibraryBooks';
+import { useBooks } from '@/context/BooksContext';
 import { LibraryBookCard } from '@/components/LibraryBookCard';
+import { SearchBar } from '@/components/SearchBar';
+import { LibraryRandomPickerModal } from '@/components/LibraryRandomPickerModal';
 
 export default function LibraryScreen() {
   const colors = useColors();
@@ -21,6 +24,25 @@ export default function LibraryScreen() {
   const styles = makeStyles(colors, insets.top, insets.bottom);
 
   const { books, loading, loadingMore, error, loadMore, retry } = useOpenLibraryBooks();
+  const { addBook } = useBooks();
+
+  const [searchVisible, setSearchVisible] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [pickerVisible, setPickerVisible] = useState(false);
+
+  const displayBooks = searchQuery.trim()
+    ? books.filter((b) => {
+        const q = searchQuery.toLowerCase();
+        return (
+          b.title.toLowerCase().includes(q) ||
+          b.author.toLowerCase().includes(q)
+        );
+      })
+    : books;
+
+  const handleAddToWantToRead = (book: OpenLibraryBook) => {
+    addBook(book.title, book.author, 'want-to-read');
+  };
 
   return (
     <View style={styles.root}>
@@ -33,8 +55,34 @@ export default function LibraryScreen() {
           <Feather name="chevron-left" size={22} color={colors.foreground} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Библиотека</Text>
-        <View style={styles.backButton} />
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={[styles.iconBtn, { borderColor: colors.border }]}
+            onPress={() => setSearchVisible(true)}
+            activeOpacity={0.75}
+            hitSlop={8}
+          >
+            <Ionicons name="search-outline" size={20} color={colors.foreground} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.iconBtn, { borderColor: colors.border }]}
+            onPress={() => setPickerVisible(true)}
+            activeOpacity={0.75}
+            hitSlop={8}
+            disabled={books.length === 0}
+          >
+            <Ionicons name="shuffle" size={20} color={colors.foreground} />
+          </TouchableOpacity>
+        </View>
       </View>
+
+      {searchVisible && (
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onClose={() => { setSearchVisible(false); setSearchQuery(''); }}
+        />
+      )}
 
       {loading ? (
         <View style={styles.centered}>
@@ -51,13 +99,31 @@ export default function LibraryScreen() {
         </View>
       ) : (
         <FlatList
-          data={books}
+          data={displayBooks}
           keyExtractor={(item: OpenLibraryBook) => item.key}
           renderItem={({ item }) => <LibraryBookCard book={item} />}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[
+            styles.listContent,
+            displayBooks.length === 0 && styles.centered,
+          ]}
           showsVerticalScrollIndicator={false}
+          // Loading more only makes sense against the unfiltered feed —
+          // while searching we're just filtering what's already loaded.
           onEndReachedThreshold={0.4}
-          onEndReached={loadMore}
+          onEndReached={searchQuery.trim() ? undefined : loadMore}
+          ListEmptyComponent={
+            searchQuery.trim() ? (
+              <View style={styles.emptyState}>
+                <Ionicons name="search-outline" size={52} color={colors.mutedForeground} />
+                <Text style={[styles.title, { color: colors.foreground }]}>
+                  Ничего не найдено
+                </Text>
+                <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
+                  Попробуйте другой запрос
+                </Text>
+              </View>
+            ) : null
+          }
           ListFooterComponent={
             loadingMore ? (
               <View style={styles.footer}>
@@ -71,6 +137,13 @@ export default function LibraryScreen() {
           }
         />
       )}
+
+      <LibraryRandomPickerModal
+        visible={pickerVisible}
+        books={books}
+        onAddToWantToRead={handleAddToWantToRead}
+        onClose={() => setPickerVisible(false)}
+      />
     </View>
   );
 }
@@ -104,11 +177,31 @@ function makeStyles(
       fontFamily: 'Inter_600SemiBold',
       color: colors.foreground,
     },
+    headerActions: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+    },
+    iconBtn: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      borderWidth: StyleSheet.hairlineWidth,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     centered: {
       flex: 1,
       alignItems: 'center',
       justifyContent: 'center',
       paddingHorizontal: 32,
+    },
+    emptyState: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10,
+      paddingTop: 80,
     },
     listContent: {
       paddingTop: 8,
