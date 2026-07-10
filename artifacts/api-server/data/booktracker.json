@@ -20,8 +20,9 @@
         "id": "7f314272-4d93-408d-806b-4a7675d9072f",
         "title": "Тысячеликая героиня",
         "author": "",
-        "status": "want-to-read",
-        "addedAt": 1783501525275
+        "status": "reading",
+        "addedAt": 1783501525275,
+        "startedReadingAt": 1783680000716
       },
       {
         "id": "863ae29d-202f-4312-ba96-92975714a044",
