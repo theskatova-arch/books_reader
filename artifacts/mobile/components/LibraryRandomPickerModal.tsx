@@ -24,11 +24,35 @@ interface LibraryRandomPickerModalProps {
   onClose: () => void;
 }
 
-function pickRandom(books: OpenLibraryBook[], exclude?: OpenLibraryBook): OpenLibraryBook {
+/**
+ * Picks a random book, avoiding recently shown ones when the pool is large
+ * enough to do so. `recentKeys` holds the last few picks (most recent last);
+ * we exclude as much of that history as we can while still leaving at least
+ * one book to choose from, so repeats become rare instead of "exclude only
+ * the immediately previous pick".
+ */
+function pickRandom(books: OpenLibraryBook[], recentKeys: string[] = []): OpenLibraryBook | null {
+  if (books.length === 0) return null;
   if (books.length === 1) return books[0]!;
-  const filtered = exclude ? books.filter((b) => b.key !== exclude.key) : books;
-  const pool = filtered.length > 0 ? filtered : books;
+
+  let pool = books;
+  // Try excluding the full recent history first, then shrink the exclusion
+  // window until at least one candidate remains.
+  for (let excludeCount = recentKeys.length; excludeCount >= 0; excludeCount--) {
+    const excluded = new Set(recentKeys.slice(recentKeys.length - excludeCount));
+    const filtered = books.filter((b) => !excluded.has(b.key));
+    if (filtered.length > 0) {
+      pool = filtered;
+      break;
+    }
+  }
+
   return pool[Math.floor(Math.random() * pool.length)]!;
+}
+
+/** How many past picks to remember and avoid repeating, capped to leave choice. */
+function historyLimit(poolSize: number): number {
+  return Math.max(0, Math.min(poolSize - 1, 5));
 }
 
 export function LibraryRandomPickerModal({
@@ -54,6 +78,13 @@ export function LibraryRandomPickerModal({
   const pickTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isVisibleRef = useRef(false);
   const addRequestRef = useRef(0);
+  const recentKeysRef = useRef<string[]>([]);
+
+  const rememberPick = useCallback((book: OpenLibraryBook) => {
+    const limit = historyLimit(booksRef.current.length);
+    const next = [...recentKeysRef.current, book.key];
+    recentKeysRef.current = limit > 0 ? next.slice(-limit) : [];
+  }, []);
 
   const revealCard = useCallback(() => {
     cardOpacity.setValue(0);
@@ -123,8 +154,10 @@ export function LibraryRandomPickerModal({
       setFailed(false);
       setSaving(false);
       addRequestRef.current += 1;
-      if (booksRef.current.length > 0) {
-        const first = pickRandom(booksRef.current);
+      recentKeysRef.current = [];
+      const first = pickRandom(booksRef.current, recentKeysRef.current);
+      if (first) {
+        rememberPick(first);
         setPicked(first);
         revealCard();
       }
@@ -134,7 +167,7 @@ export function LibraryRandomPickerModal({
       addRequestRef.current += 1;
       setPicked(null);
     }
-  }, [visible, revealCard, cancelInFlight]);
+  }, [visible, revealCard, cancelInFlight, rememberPick]);
 
   useEffect(() => {
     return () => {
@@ -158,18 +191,22 @@ export function LibraryRandomPickerModal({
       Animated.timing(cardTranslateY, { toValue: -20, duration: 180, useNativeDriver: true }),
     ]).start();
 
-    const currentPicked = picked;
-
     pickTimerRef.current = setTimeout(() => {
       pickTimerRef.current = null;
       if (!isVisibleRef.current) return;
       stopSpin();
-      const next = pickRandom(booksRef.current, currentPicked ?? undefined);
-      setPicked(next);
       setSpinning(false);
+      const next = pickRandom(booksRef.current, recentKeysRef.current);
+      if (!next) {
+        // Pool became empty while the timer was running (e.g. all books
+        // got added or removed); keep the previous pick rather than crash.
+        return;
+      }
+      rememberPick(next);
+      setPicked(next);
       revealCard();
     }, 900);
-  }, [spinning, saving, picked, startSpin, stopSpin, revealCard, cardOpacity, cardTranslateY]);
+  }, [spinning, saving, startSpin, stopSpin, revealCard, cardOpacity, cardTranslateY, rememberPick]);
 
   const handleAdd = useCallback(async () => {
     if (!picked || saving || added) return;
