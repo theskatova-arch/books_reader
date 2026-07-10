@@ -13,7 +13,12 @@ export type { BookStatus, Book };
 
 interface BooksContextType {
   books: Book[];
-  addBook: (title: string, author: string, status: BookStatus) => Promise<void>;
+  addBook: (
+    title: string,
+    author: string,
+    status: BookStatus,
+    coverUrl?: string,
+  ) => Promise<void>;
   moveBook: (id: string, newStatus: BookStatus) => Promise<void>;
   deleteBook: (id: string) => Promise<void>;
   updateDates: (
@@ -59,7 +64,7 @@ export function BooksProvider({ children }: { children: React.ReactNode }) {
   }, [token, reload]);
 
   const addBook = useCallback(
-    async (title: string, author: string, status: BookStatus) => {
+    async (title: string, author: string, status: BookStatus, coverUrl?: string) => {
       const now = Date.now();
       const book = await booksApi.create({
         title: title.trim(),
@@ -68,6 +73,7 @@ export function BooksProvider({ children }: { children: React.ReactNode }) {
         addedAt: now,
         startedReadingAt: status === 'reading' ? now : undefined,
         finishedAt: status === 'read' ? now : undefined,
+        coverUrl,
       });
       setBooks((prev) => [book, ...prev]);
     },

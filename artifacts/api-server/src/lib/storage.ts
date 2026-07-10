@@ -21,6 +21,7 @@ export interface BookRecord {
   startedReadingAt?: number;
   finishedAt?: number;
   comment?: string;
+  coverUrl?: string;
 }
 
 interface DataStore {

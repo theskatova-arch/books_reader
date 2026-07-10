@@ -1,6 +1,7 @@
 import React, { useRef, useState } from 'react';
 import {
   Animated,
+  Image,
   Platform,
   Pressable,
   StyleSheet,
@@ -146,6 +147,12 @@ export function BookCard({ book }: BookCardProps) {
           ]}
         >
           <View style={styles.cardContent}>
+            {book.coverUrl && (
+              <View style={[styles.coverWrap, { backgroundColor: colors.secondary }]}>
+                <Image source={{ uri: book.coverUrl }} style={styles.cover} resizeMode="cover" />
+              </View>
+            )}
+
             <View style={styles.textBlock}>
               <Text
                 style={[styles.title, { color: colors.foreground }]}
@@ -306,6 +313,16 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     gap: 12,
+  },
+  coverWrap: {
+    width: 44,
+    height: 64,
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  cover: {
+    width: '100%',
+    height: '100%',
   },
   textBlock: {
     flex: 1,

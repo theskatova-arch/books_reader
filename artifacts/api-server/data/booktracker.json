@@ -10,6 +10,13 @@
   "books": {
     "60e276b7-4943-44e9-a931-f50cfd0a9778": [
       {
+        "id": "36a203d0-71e7-4a38-83c1-ba14854bd5a7",
+        "title": "Маленький принц",
+        "author": "Antoine de Saint-Exupéry",
+        "status": "want-to-read",
+        "addedAt": 1783686231600
+      },
+      {
         "id": "ee644b27-c014-42bf-a796-effa905c2a76",
         "title": "Тень и кость",
         "author": "",

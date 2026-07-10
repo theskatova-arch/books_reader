@@ -10,4 +10,6 @@ export interface Book {
   finishedAt?: number;
   /** Optional reader's note left after finishing the book */
   comment?: string;
+  /** Cover image URL, when known (e.g. picked from the Library). */
+  coverUrl?: string;
 }

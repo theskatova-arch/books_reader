@@ -88,6 +88,7 @@ export interface CreateBookPayload {
   addedAt: number;
   startedReadingAt?: number;
   finishedAt?: number;
+  coverUrl?: string;
 }
 
 export interface UpdateBookPayload {
@@ -95,6 +96,7 @@ export interface UpdateBookPayload {
   startedReadingAt?: number;
   finishedAt?: number;
   comment?: string | null;
+  coverUrl?: string;
 }
 
 export const booksApi = {

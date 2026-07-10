@@ -15,7 +15,7 @@ router.get("/", (req, res) => {
 
 // POST /api/books — create a new book
 router.post("/", (req, res) => {
-  const { title, author, status, addedAt, startedReadingAt, finishedAt } =
+  const { title, author, status, addedAt, startedReadingAt, finishedAt, coverUrl } =
     req.body as Partial<BookRecord>;
 
   if (!title || typeof title !== "string" || title.trim().length === 0) {
@@ -38,6 +38,7 @@ router.post("/", (req, res) => {
     startedReadingAt:
       typeof startedReadingAt === "number" ? startedReadingAt : undefined,
     finishedAt: typeof finishedAt === "number" ? finishedAt : undefined,
+    coverUrl: typeof coverUrl === "string" && coverUrl.trim().length > 0 ? coverUrl.trim() : undefined,
   };
 
   const books = getBooks(req.user!.userId);
@@ -72,6 +73,21 @@ router.put("/:id", (req, res) => {
     if (key in updates) {
       // @ts-expect-error dynamic assignment
       updated[key] = updates[key];
+    }
+  }
+
+  // Handle coverUrl separately, mirroring POST's validation: null or empty
+  // string clears it; a non-empty string is trimmed; anything else (wrong
+  // type) is rejected rather than silently stored.
+  if ("coverUrl" in updates) {
+    const raw = updates.coverUrl;
+    if (raw === null || raw === "" || raw === undefined) {
+      delete updated.coverUrl;
+    } else if (typeof raw === "string") {
+      updated.coverUrl = raw.trim();
+    } else {
+      res.status(400).json({ error: "Обложка должна быть строкой" });
+      return;
     }
   }
 
