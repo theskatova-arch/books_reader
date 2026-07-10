@@ -12,7 +12,7 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
-import { useOpenLibraryBooks, OpenLibraryBook } from '@/hooks/useOpenLibraryBooks';
+import { useOpenLibraryBooks, useOpenLibrarySearch, OpenLibraryBook } from '@/hooks/useOpenLibraryBooks';
 import { useBooks } from '@/context/BooksContext';
 import { LibraryBookCard } from '@/components/LibraryBookCard';
 import { SearchBar } from '@/components/SearchBar';
@@ -25,23 +25,29 @@ export default function LibraryScreen() {
   const router = useRouter();
   const styles = makeStyles(colors, insets.bottom);
 
-  const { books, loading, loadingMore, error, loadMore, retry } = useOpenLibraryBooks();
-  const { addBook } = useBooks();
-
   const [searchVisible, setSearchVisible] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQueryState, setSearchQuery] = useState('');
   const [pickerVisible, setPickerVisible] = useState(false);
   const [addedKeys, setAddedKeys] = useState<Set<string>>(new Set());
 
-  const displayBooks = searchQuery.trim()
-    ? books.filter((b) => {
-        const q = searchQuery.toLowerCase();
-        return (
-          b.title.toLowerCase().includes(q) ||
-          b.author.toLowerCase().includes(q)
-        );
-      })
-    : books;
+  const { books, loading, loadingMore, error, loadMore, retry } = useOpenLibraryBooks();
+  const {
+    books: searchResults,
+    loading: searchLoading,
+    loadingMore: searchLoadingMore,
+    error: searchError,
+    loadMore: searchLoadMore,
+    retry: searchRetry,
+  } = useOpenLibrarySearch(searchVisible ? searchQueryState : '');
+  const { addBook } = useBooks();
+
+  const isSearching = searchVisible && searchQueryState.trim().length > 0;
+  const displayBooks = isSearching ? searchResults : books;
+  const displayLoading = isSearching ? searchLoading : loading;
+  const displayLoadingMore = isSearching ? searchLoadingMore : loadingMore;
+  const displayError = isSearching ? searchError : error;
+  const displayLoadMore = isSearching ? searchLoadMore : loadMore;
+  const displayRetry = isSearching ? searchRetry : retry;
 
   const handleAddToWantToRead = async (book: OpenLibraryBook): Promise<boolean> => {
     try {
@@ -92,7 +98,7 @@ export default function LibraryScreen() {
             onPress={() => setPickerVisible(true)}
             activeOpacity={0.75}
             hitSlop={8}
-            disabled={books.length === 0}
+            disabled={!isSearching && books.length === 0}
           >
             <Ionicons name="shuffle" size={20} color={colors.foreground} />
           </TouchableOpacity>
@@ -101,22 +107,24 @@ export default function LibraryScreen() {
 
       {searchVisible && (
         <SearchBar
-          value={searchQuery}
+          value={searchQueryState}
           onChangeText={setSearchQuery}
           onClose={() => { setSearchVisible(false); setSearchQuery(''); }}
         />
       )}
 
-      {loading ? (
+      {displayLoading ? (
         <View style={styles.centered}>
           <ActivityIndicator color={colors.primary} />
         </View>
-      ) : error && books.length === 0 ? (
+      ) : displayError && displayBooks.length === 0 ? (
         <View style={styles.centered}>
           <Text style={styles.emoji}>⚠️</Text>
-          <Text style={styles.title}>Не удалось загрузить книги</Text>
-          <Text style={styles.subtitle}>{error}</Text>
-          <TouchableOpacity style={styles.retryBtn} activeOpacity={0.75} onPress={retry}>
+          <Text style={styles.title}>
+            {isSearching ? 'Не удалось найти книги' : 'Не удалось загрузить книги'}
+          </Text>
+          <Text style={styles.subtitle}>{displayError}</Text>
+          <TouchableOpacity style={styles.retryBtn} activeOpacity={0.75} onPress={displayRetry}>
             <Text style={styles.retryLabel}>Повторить</Text>
           </TouchableOpacity>
         </View>
@@ -137,12 +145,10 @@ export default function LibraryScreen() {
             displayBooks.length === 0 && styles.centered,
           ]}
           showsVerticalScrollIndicator={false}
-          // Loading more only makes sense against the unfiltered feed —
-          // while searching we're just filtering what's already loaded.
           onEndReachedThreshold={0.4}
-          onEndReached={searchQuery.trim() ? undefined : loadMore}
+          onEndReached={displayLoadMore}
           ListEmptyComponent={
-            searchQuery.trim() ? (
+            isSearching ? (
               <View style={styles.emptyState}>
                 <Ionicons name="search-outline" size={52} color={colors.mutedForeground} />
                 <Text style={[styles.title, { color: colors.foreground }]}>
@@ -155,12 +161,12 @@ export default function LibraryScreen() {
             ) : null
           }
           ListFooterComponent={
-            loadingMore ? (
+            displayLoadingMore ? (
               <View style={styles.footer}>
                 <ActivityIndicator color={colors.primary} />
               </View>
-            ) : error ? (
-              <TouchableOpacity style={styles.footerRetry} activeOpacity={0.75} onPress={retry}>
+            ) : displayError ? (
+              <TouchableOpacity style={styles.footerRetry} activeOpacity={0.75} onPress={displayRetry}>
                 <Text style={styles.footerRetryLabel}>Не удалось загрузить ещё. Повторить</Text>
               </TouchableOpacity>
             ) : null

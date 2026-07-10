@@ -124,6 +124,135 @@ export async function pickRandomLibraryBook(
   return null;
 }
 
+function buildSearchQuery(term: string): string {
+  // Free-text search across the whole catalog (title/author), still
+  // constrained to a Russian-language edition so results match the rest of
+  // the Library screen. Deliberately drops the "subject:fiction" filter
+  // used for the browse feed — a user searching by name should be able to
+  // find a specific book even if Open Library didn't tag it as fiction.
+  return `${term} language:rus`;
+}
+
+/**
+ * Searches the *entire* Open Library catalog by free text (title/author),
+ * one page at a time — as opposed to filtering only the books already
+ * loaded into the browse feed. Debounces the query so fast typing doesn't
+ * fire a request per keystroke, and resets pagination whenever the query
+ * text changes.
+ */
+export function useOpenLibrarySearch(query: string) {
+  const trimmed = query.trim();
+
+  const [books, setBooks] = useState<OpenLibraryBook[]>([]);
+  const [page, setPage] = useState(0);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [hasMore, setHasMore] = useState(true);
+
+  const isMounted = useRef(true);
+  // Bumped on every new query (and every explicit fetch) so a stale
+  // in-flight response — from a previous, now-irrelevant search term or a
+  // superseded request for the same term — can never overwrite newer
+  // state. Unlike a simple in-flight boolean lock, this lets a new query
+  // always issue its own request even while an older one is still pending.
+  const requestTokenRef = useRef(0);
+  const abortRef = useRef<AbortController | null>(null);
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false;
+      abortRef.current?.abort();
+    };
+  }, []);
+
+  const fetchPage = useCallback(async (term: string, nextPage: number, token: number) => {
+    // Cancel any older request — it's either for a stale query or a
+    // superseded page — so it can't race with this one for the network.
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(
+        buildSearchQuery(term),
+      )}&page=${nextPage}&limit=${PAGE_SIZE}&fields=${FIELDS}&${EDITIONS_PARAMS}`;
+      const res = await fetch(url, { signal: controller.signal });
+      if (!res.ok) throw new Error(`Open Library вернул ошибку ${res.status}`);
+      const data: SearchResponse = await res.json();
+      if (!isMounted.current || requestTokenRef.current !== token) return;
+
+      const newBooks = data.docs
+        .filter((doc) => CYRILLIC_RE.test(resolveTitle(doc)))
+        .map(toBook);
+      setBooks((prev) => {
+        if (nextPage === 1) return newBooks;
+        const seen = new Set(prev.map((b) => b.key));
+        return [...prev, ...newBooks.filter((b) => !seen.has(b.key))];
+      });
+      setPage(nextPage);
+      setHasMore(data.docs.length === PAGE_SIZE && nextPage * PAGE_SIZE < data.numFound);
+    } catch (e) {
+      // Aborts are expected when a newer query/page supersedes this
+      // request — not a real failure, so don't surface them as an error.
+      if (e instanceof Error && e.name === 'AbortError') return;
+      if (!isMounted.current || requestTokenRef.current !== token) return;
+      setError(e instanceof Error ? e.message : 'Не удалось найти книги');
+    } finally {
+      if (isMounted.current && requestTokenRef.current === token) setLoading(false);
+    }
+  }, []);
+
+  // Debounced search-as-you-type: wait for a pause in typing before hitting
+  // the API, and reset to a fresh page 1 for every new query.
+  useEffect(() => {
+    if (!trimmed) {
+      requestTokenRef.current += 1;
+      abortRef.current?.abort();
+      setBooks([]);
+      setPage(0);
+      setError(null);
+      setHasMore(true);
+      setLoading(false);
+      return;
+    }
+
+    const token = ++requestTokenRef.current;
+    setBooks([]);
+    setPage(0);
+    setHasMore(true);
+
+    const timer = setTimeout(() => {
+      fetchPage(trimmed, 1, token);
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [trimmed, fetchPage]);
+
+  const loadMore = useCallback(() => {
+    if (loading || !hasMore || !trimmed) return;
+    fetchPage(trimmed, page + 1, requestTokenRef.current);
+  }, [loading, hasMore, trimmed, page, fetchPage]);
+
+  const retry = useCallback(() => {
+    if (!trimmed) return;
+    const token = ++requestTokenRef.current;
+    fetchPage(trimmed, page === 0 ? 1 : page + 1, token);
+  }, [trimmed, page, fetchPage]);
+
+  return {
+    books,
+    loading: loading && books.length === 0,
+    loadingMore: loading && books.length > 0,
+    error,
+    hasMore,
+    loadMore,
+    retry,
+  };
+}
+
 /**
  * Loads books from the Open Library search API one page (20 books) at a
  * time. Call `loadMore()` when the user scrolls near the bottom to fetch
