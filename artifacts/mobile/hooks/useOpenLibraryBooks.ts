@@ -9,9 +9,10 @@ export interface OpenLibraryBook {
 }
 
 const PAGE_SIZE = 20;
-// Broad, popular-fiction query used as the library's default browse list —
-// Open Library's search endpoint requires a non-empty query string.
-const QUERY = 'fiction';
+// Restricts results to Russian-language fiction so titles/authors render
+// in Russian by default (plain "&lang=ru" only affects ranking, not the
+// language of the returned titles).
+const QUERY = 'subject:"Russian fiction"';
 
 interface SearchDoc {
   key: string;
