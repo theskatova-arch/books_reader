@@ -192,7 +192,7 @@ export async function pickRandomLibraryBook(
 function buildSearchQuery(params: LibrarySearchParams): string {
   const parts: string[] = [];
   if (params.title.trim()) parts.push(params.title.trim());
-  if (params.author.trim()) parts.push(`author:"${params.author.trim()}"`);
+  if (params.author.trim()) parts.push(params.author.trim());
   if (params.genre.subject) parts.push(`subject:"${params.genre.subject}"`);
   parts.push('language:rus');
   return parts.join(' ');
