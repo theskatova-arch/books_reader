@@ -10,6 +10,14 @@
   "books": {
     "60e276b7-4943-44e9-a931-f50cfd0a9778": [
       {
+        "id": "9641886d-a454-4fdb-9c75-1343bb936c96",
+        "title": "Шестерка воронов",
+        "author": "Лі Бардуґо",
+        "status": "want-to-read",
+        "addedAt": 1783752053675,
+        "coverUrl": "https://covers.openlibrary.org/b/id/12667417-M.jpg"
+      },
+      {
         "id": "24bee3b5-dd46-482d-abda-5d6be37dc01e",
         "title": "Время библиомантов",
         "author": "Kai Meyer",
@@ -22,9 +30,10 @@
         "id": "5888a759-8e43-4adf-96de-e95ea4d70fa4",
         "title": "Камера обскура",
         "author": "Владимир Владимирович Набоков",
-        "status": "reading",
+        "status": "read",
         "addedAt": 1783750007912,
-        "startedReadingAt": 1783750013346
+        "startedReadingAt": 1783750013346,
+        "finishedAt": 1783752064703
       }
     ]
   }
