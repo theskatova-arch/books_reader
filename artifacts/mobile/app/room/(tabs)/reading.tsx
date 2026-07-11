@@ -137,7 +137,6 @@ export default function ReadingScreen() {
         onConfirm={() => {
           markFinishReadSeen();
           if (list[0]) moveBook(list[0].id, 'read');
-          router.navigate('/room/read');
         }}
         onSkip={markFinishReadSeen}
       />

@@ -208,7 +208,6 @@ export default function WantToReadScreen() {
         onConfirm={() => {
           markStartReadSeen();
           if (list[0]) moveBook(list[0].id, 'reading');
-          router.navigate('/room/reading');
         }}
         onSkip={markStartReadSeen}
       />
