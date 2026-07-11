@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -23,6 +23,8 @@ import { LibraryRandomPickerModal } from '@/components/LibraryRandomPickerModal'
 import { LibrarySearchModal } from '@/components/LibrarySearchModal';
 import { BackToHomeButton } from '@/components/BackToHomeButton';
 import { LIBRARY_GENRES } from '@/constants/libraryGenres';
+import { TutorialSpotlight, SpotlightRect } from '@/components/TutorialSpotlight';
+import { useTutorialStep } from '@/hooks/useTutorialStep';
 
 const ANY_GENRE = LIBRARY_GENRES[0]!;
 
@@ -38,6 +40,19 @@ export default function LibraryScreen() {
   const [searchModalVisible, setSearchModalVisible] = useState(false);
   const [pickerVisible, setPickerVisible] = useState(false);
   const [addedKeys, setAddedKeys] = useState<Set<string>>(new Set());
+
+  // Tutorial
+  const { seen: tutorialSeen, markSeen: markTutorialSeen } = useTutorialStep('library-shuffle');
+  const shuffleBtnRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
+  const [shuffleRect, setShuffleRect] = useState<SpotlightRect | null>(null);
+
+  const measureShuffleBtn = () => {
+    shuffleBtnRef.current?.measure(
+      (_x: number, _y: number, width: number, height: number, pageX: number, pageY: number) => {
+        setShuffleRect({ x: pageX, y: pageY, width, height });
+      },
+    );
+  };
 
   const { books, loading, loadingMore, error, loadMore, retry } = useOpenLibraryBooks();
   const {
@@ -152,8 +167,10 @@ export default function LibraryScreen() {
             />
           </TouchableOpacity>
           <TouchableOpacity
+            ref={shuffleBtnRef}
             style={[styles.iconBtn, { borderColor: colors.border }]}
             onPress={() => setPickerVisible(true)}
+            onLayout={measureShuffleBtn}
             activeOpacity={0.75}
             hitSlop={8}
             disabled={!isSearching && books.length === 0}
@@ -237,6 +254,17 @@ export default function LibraryScreen() {
         excludeKeys={addedKeys}
         onAddToWantToRead={handleAddToWantToRead}
         onClose={() => setPickerVisible(false)}
+      />
+
+      <TutorialSpotlight
+        visible={tutorialSeen === false && shuffleRect !== null}
+        targetRect={shuffleRect}
+        text="Не знаешь что почитать? Используй рандомную подборку книг!"
+        onConfirm={() => {
+          markTutorialSeen();
+          setPickerVisible(true);
+        }}
+        onSkip={markTutorialSeen}
       />
     </View>
   );
