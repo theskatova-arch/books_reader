@@ -4,33 +4,28 @@ A personal iOS mobile app for tracking books across three lists: Want to Read, C
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/mobile run dev` — run the Expo app
 - `pnpm run typecheck` — full typecheck across all packages
-- `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Mobile: Expo (React Native)
+- Storage: AsyncStorage (on-device, no server required)
+
+## Architecture
+
+All data is stored locally on the device via AsyncStorage. No backend, no database, no internet connection required (except for book cover search via OpenLibrary).
+
+### Branches
+- `main` — current version, fully local/offline
+- `server-version` — older version with Express API + PostgreSQL
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
-
-## Architecture decisions
-
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
-
-## Product
-
-_Describe the high-level user-facing capabilities of this app once they exist._
+- `artifacts/mobile` — Expo app
+- `artifacts/mobile/context/BooksContext.tsx` — all book CRUD, reads/writes AsyncStorage
+- `artifacts/mobile/hooks/useTutorialStep.ts` — tutorial step state, also in AsyncStorage
 
 ## User preferences
 
@@ -38,8 +33,5 @@ _Populate as you build — explicit user instructions worth remembering across s
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- No server or DATABASE_URL needed — everything runs on the device
+- Tutorial key prefix must be bumped (`@tutorial_vN:`) to reset the tutorial for all users
