@@ -2,7 +2,7 @@ import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const PREFIX = '@tutorial_v9:';
+const PREFIX = '@tutorial_v10:';
 
 /**
  * Tracks whether a named tutorial step has been completed.
