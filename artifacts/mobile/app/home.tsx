@@ -15,15 +15,6 @@ export default function HomeScreen() {
     <View style={styles.root}>
       <View style={styles.mainRow}>
         <TouchableOpacity
-          style={[styles.squareButton, styles.primaryButton]}
-          activeOpacity={0.85}
-          onPress={() => router.push('/room')}
-        >
-          <Text style={styles.squareEmoji}>🛋️</Text>
-          <Text style={styles.primaryButtonLabel}>Моя комната</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
           style={[styles.squareButton, styles.secondaryButton]}
           activeOpacity={0.85}
           onPress={() => router.push('/library')}
@@ -31,15 +22,16 @@ export default function HomeScreen() {
           <Text style={styles.squareEmoji}>📖</Text>
           <Text style={styles.secondaryButtonLabel}>Библиотека</Text>
         </TouchableOpacity>
-      </View>
 
-      <TouchableOpacity
-        style={styles.supportButton}
-        activeOpacity={0.85}
-        onPress={() => Linking.openURL('https://t.me/katyaskatova')}
-      >
-        <Text style={styles.supportButtonLabel}>Поддержка</Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.squareButton, styles.primaryButton]}
+          activeOpacity={0.85}
+          onPress={() => router.push('/room')}
+        >
+          <Text style={styles.squareEmoji}>🛋️</Text>
+          <Text style={styles.primaryButtonLabel}>Моя комната</Text>
+        </TouchableOpacity>
+      </View>
 
       <TouchableOpacity
         style={styles.promoCard}
@@ -52,6 +44,14 @@ export default function HomeScreen() {
           <Text style={styles.promoLink}>Непопулярный книжный клуб</Text>
           , чтобы увидеть отзывы на книги
         </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={styles.supportButton}
+        activeOpacity={0.85}
+        onPress={() => Linking.openURL('https://t.me/katyaskatova')}
+      >
+        <Text style={styles.supportButtonLabel}>Поддержка</Text>
       </TouchableOpacity>
     </View>
   );
@@ -119,10 +119,7 @@ function makeStyles(
       color: colors.mutedForeground,
     },
     promoCard: {
-      position: 'absolute',
-      bottom: bottomInset + 20,
-      left: 24,
-      right: 24,
+      width: '100%',
       flexDirection: 'row',
       alignItems: 'flex-start',
       backgroundColor: colors.card,
