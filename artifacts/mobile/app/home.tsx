@@ -18,6 +18,19 @@ export default function HomeScreen() {
         <Text style={styles.tagline}>Куда пойдём?</Text>
       </View>
 
+      <View style={styles.bottom}>
+        <Text style={styles.promoText}>
+          Подписывайся на мой{' '}
+          <Text
+            style={styles.promoLink}
+            onPress={() => Linking.openURL('https://t.me/nopopular_books_club')}
+          >
+            Непопулярный книжный клуб
+          </Text>
+          , чтобы увидеть отзывы на книги
+        </Text>
+      </View>
+
       <View style={styles.buttons}>
         <TouchableOpacity
           style={[styles.button, styles.primaryButton]}
@@ -60,6 +73,25 @@ function makeStyles(
       paddingHorizontal: 24,
       paddingTop: topInset + 24,
       paddingBottom: bottomInset + 32,
+    },
+    bottom: {
+      position: 'absolute',
+      bottom: bottomInset + 24,
+      left: 24,
+      right: 24,
+      alignItems: 'center',
+    },
+    promoText: {
+      fontSize: 13,
+      fontFamily: 'Inter_400Regular',
+      color: colors.mutedForeground,
+      textAlign: 'center',
+      lineHeight: 20,
+    },
+    promoLink: {
+      fontFamily: 'Inter_500Medium',
+      color: colors.primary,
+      textDecorationLine: 'underline',
     },
     hero: {
       alignItems: 'center',
