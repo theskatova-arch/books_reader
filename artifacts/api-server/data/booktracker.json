@@ -8,46 +8,6 @@
     }
   },
   "books": {
-    "60e276b7-4943-44e9-a931-f50cfd0a9778": [
-      {
-        "id": "3232e873-c30c-4ed8-b924-1a2476d947cc",
-        "title": "Преступление и наказание",
-        "author": "Фёдор Михайлович Достоевский",
-        "status": "reading",
-        "addedAt": 1783747595378,
-        "startedReadingAt": 1783747808115
-      },
-      {
-        "id": "4e7bf2e6-b4b3-4695-96d2-a3b135fa14cd",
-        "title": "Бремя страстей человеческих",
-        "author": "Сомерсет Моэм",
-        "status": "reading",
-        "addedAt": 1783745710119,
-        "coverUrl": "https://covers.openlibrary.org/b/id/5277723-M.jpg",
-        "startedReadingAt": 1783747972329
-      },
-      {
-        "id": "ee644b27-c014-42bf-a796-effa905c2a76",
-        "title": "Тень и кость",
-        "author": "",
-        "status": "want-to-read",
-        "addedAt": 1783501552806
-      },
-      {
-        "id": "7f314272-4d93-408d-806b-4a7675d9072f",
-        "title": "Тысячеликая героиня",
-        "author": "",
-        "status": "reading",
-        "addedAt": 1783501525275,
-        "startedReadingAt": 1783680000716
-      },
-      {
-        "id": "863ae29d-202f-4312-ba96-92975714a044",
-        "title": "Танатонавты",
-        "author": "Вербер",
-        "status": "want-to-read",
-        "addedAt": 1783501092943
-      }
-    ]
+    "60e276b7-4943-44e9-a931-f50cfd0a9778": []
   }
 }

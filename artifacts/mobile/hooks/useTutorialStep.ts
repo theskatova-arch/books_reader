@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const PREFIX = '@tutorial_v6:';
+const PREFIX = '@tutorial_v7:';
 
 /**
  * Tracks whether a named tutorial step has been completed.
