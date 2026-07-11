@@ -27,6 +27,8 @@ interface AddBookModalProps {
   visible: boolean;
   onClose: () => void;
   targetStatus: BookStatus;
+  /** Called after a book is successfully added (before modal closes). */
+  onSuccess?: () => void;
 }
 
 type Mode = 'manual' | 'pick';
@@ -35,6 +37,7 @@ export function AddBookModal({
   visible,
   onClose,
   targetStatus,
+  onSuccess,
 }: AddBookModalProps) {
   const colors = useColors();
   const insets = useSafeAreaInsets();
@@ -103,6 +106,7 @@ export function AddBookModal({
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
     addBook(title.trim(), author.trim(), targetStatus);
+    onSuccess?.();
     handleClose();
   };
 
@@ -115,6 +119,7 @@ export function AddBookModal({
       ? `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`
       : undefined;
     addBook(book.title, book.author, targetStatus, coverUrl);
+    onSuccess?.();
     handleClose();
   };
 

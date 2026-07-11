@@ -49,6 +49,8 @@ export default function WantToReadScreen() {
 
   const { seen: startReadSeen, markSeen: markStartReadSeen } = useTutorialStep('room-start-reading');
   const [startReadRect, setStartReadRect] = useState<SpotlightRect | null>(null);
+  // Step 2 only activates after the user adds a book during this tutorial session
+  const [bookAddedForTutorial, setBookAddedForTutorial] = useState(false);
 
   const list = books
     .filter((b) => b.status === 'want-to-read')
@@ -178,6 +180,7 @@ export default function WantToReadScreen() {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         targetStatus="want-to-read"
+        onSuccess={() => { if (tutorialSeen === true && startReadSeen === false) setBookAddedForTutorial(true); }}
       />
 
       <RandomPickerModal
@@ -199,7 +202,7 @@ export default function WantToReadScreen() {
       />
 
       <TutorialSpotlight
-        visible={tutorialSeen !== false && startReadSeen === false && startReadRect !== null}
+        visible={tutorialSeen === true && startReadSeen === false && bookAddedForTutorial && startReadRect !== null}
         targetRect={startReadRect}
         text={'Теперь переведи книгу в список "Читаю"'}
         onConfirm={() => {
