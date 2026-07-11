@@ -8,6 +8,16 @@
     }
   },
   "books": {
-    "60e276b7-4943-44e9-a931-f50cfd0a9778": []
+    "60e276b7-4943-44e9-a931-f50cfd0a9778": [
+      {
+        "id": "0cfd088a-eb62-4013-80ae-db030ba69653",
+        "title": "Бремя полуверок",
+        "author": "Oleg Samorodniĭ",
+        "status": "read",
+        "addedAt": 1783748730968,
+        "startedReadingAt": 1783748737512,
+        "finishedAt": 1783748743320
+      }
+    ]
   }
 }

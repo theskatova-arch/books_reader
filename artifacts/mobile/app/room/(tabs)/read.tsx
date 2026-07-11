@@ -139,7 +139,7 @@ export default function ReadScreen() {
                 onPress: () => setModalVisible(true),
               },
               {
-                label: filter ? `Фильтр: ${filterLabel}` : 'Фильтр по месяцу',
+                label: filter ? `Фильтр: ${filterLabel}` : 'Фильтр',
                 icon: filter ? 'funnel' : 'funnel-outline',
                 onPress: () => setPickerVisible(true),
               },
