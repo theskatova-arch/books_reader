@@ -1,10 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
+import { resolveCyrillicAuthor } from '@/hooks/useOpenLibraryBooks';
+
+interface EditionDoc {
+  title?: string;
+}
 
 interface SuggestionDoc {
   key: string;
   title: string;
   author_name?: string[];
+  author_alternative_name?: string[];
   cover_i?: number;
+  editions?: { docs: EditionDoc[] };
 }
 
 export interface BookSuggestion {
@@ -14,10 +21,20 @@ export interface BookSuggestion {
   coverId: number | null;
 }
 
+const EDITIONS_PARAMS = 'editions.language=rus&editions.limit=1';
+const FIELDS =
+  'key,title,author_name,author_alternative_name,cover_i,editions';
+
+function resolveTitle(doc: SuggestionDoc): string {
+  return doc.editions?.docs?.[0]?.title ?? doc.title;
+}
+
 /**
  * Searches Open Library as the user types, returning up to 8 suggestions.
  * Debounces 350 ms and cancels stale requests. No language filter so any
  * book (Russian, English, etc.) can be found and added to the shelf.
+ * Titles use the Russian edition title when available; author names use a
+ * Cyrillic alternative when OL provides one.
  * Results are suppressed when query is shorter than 2 characters.
  */
 export function useOpenLibrarySuggestions(query: string) {
@@ -53,7 +70,7 @@ export function useOpenLibrarySuggestions(query: string) {
         const url =
           `https://openlibrary.org/search.json` +
           `?q=${encodeURIComponent(trimmed)}` +
-          `&fields=key,title,author_name,cover_i&limit=8`;
+          `&fields=${FIELDS}&${EDITIONS_PARAMS}&limit=8`;
         const res = await fetch(url, { signal: controller.signal });
         if (!res.ok) throw new Error(`OL ${res.status}`);
         const data: { docs: SuggestionDoc[] } = await res.json();
@@ -61,8 +78,8 @@ export function useOpenLibrarySuggestions(query: string) {
         setBooks(
           data.docs.map((doc) => ({
             key: doc.key,
-            title: doc.title,
-            author: doc.author_name?.[0] ?? '',
+            title: resolveTitle(doc),
+            author: resolveCyrillicAuthor(doc.author_name, doc.author_alternative_name),
             coverId: doc.cover_i ?? null,
           })),
         );

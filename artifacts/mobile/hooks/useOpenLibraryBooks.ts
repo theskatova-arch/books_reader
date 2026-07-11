@@ -47,6 +47,7 @@ interface SearchDoc {
   key: string;
   title: string;
   author_name?: string[];
+  author_alternative_name?: string[];
   cover_i?: number;
   first_publish_year?: number;
   subject?: string[];
@@ -88,18 +89,35 @@ function resolveTitle(doc: SearchDoc): string {
   return doc.editions?.docs?.[0]?.title ?? doc.title;
 }
 
+/**
+ * Returns a Cyrillic author name when one is available.
+ * - Russian/Ukrainian authors: OL stores the canonical name in Cyrillic already.
+ * - Western authors: falls back to `author_alternative_name` entries that
+ *   contain Cyrillic characters, then to the canonical Latin name.
+ */
+export function resolveCyrillicAuthor(
+  authorName: string[] | undefined,
+  altNames: string[] | undefined,
+): string {
+  const canonical = authorName?.[0] ?? '';
+  if (CYRILLIC_RE.test(canonical)) return canonical;
+  const cyrillicAlt = altNames?.find((n) => CYRILLIC_RE.test(n));
+  return cyrillicAlt ?? canonical;
+}
+
 function toBook(doc: SearchDoc): OpenLibraryBook {
   return {
     key: doc.key,
     title: resolveTitle(doc),
-    author: doc.author_name?.[0] ?? '',
+    author: resolveCyrillicAuthor(doc.author_name, doc.author_alternative_name),
     coverId: doc.cover_i ?? null,
     firstPublishYear: doc.first_publish_year ?? null,
     subjects: filterSubjects(doc.subject ?? []),
   };
 }
 
-const FIELDS = 'key,title,author_name,cover_i,first_publish_year,subject,editions';
+const FIELDS =
+  'key,title,author_name,author_alternative_name,cover_i,first_publish_year,subject,editions';
 
 /**
  * Looks up subject tags for any book by title and author via Open Library
@@ -343,7 +361,7 @@ export function useOpenLibraryBooks() {
     try {
       const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(
         QUERY,
-      )}&sort=rating&page=${nextPage}&limit=${PAGE_SIZE}&fields=key,title,author_name,cover_i,first_publish_year,editions&${EDITIONS_PARAMS}`;
+      )}&sort=rating&page=${nextPage}&limit=${PAGE_SIZE}&fields=${FIELDS}&${EDITIONS_PARAMS}`;
       const res = await fetch(url);
       if (!res.ok) throw new Error(`Open Library вернул ошибку ${res.status}`);
       const data: SearchResponse = await res.json();
