@@ -12,6 +12,7 @@ export const LIBRARY_GENRES: LibraryGenre[] = [
   { label: 'Художественная литература', subject: 'Fiction' },
   { label: 'Фантастика', subject: 'Science fiction' },
   { label: 'Фэнтези', subject: 'Fantasy fiction' },
+  { label: 'Антиутопия', subject: 'Dystopian fiction' },
   { label: 'Детектив / Триллер', subject: 'Detective and mystery stories' },
   { label: 'Исторический роман', subject: 'Historical fiction' },
   { label: 'Приключения', subject: 'Adventure stories' },
