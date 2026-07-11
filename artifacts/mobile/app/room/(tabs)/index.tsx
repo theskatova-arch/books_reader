@@ -98,18 +98,12 @@ export default function WantToReadScreen() {
               {
                 label: 'Добавить книгу',
                 icon: 'add-circle-outline',
-                onPress: () => {
-                  if (tutorialSeen === false) markTutorialSeen();
-                  setModalVisible(true);
-                },
+                onPress: () => setModalVisible(true),
               },
               {
                 label: 'Случайная книга',
                 icon: 'shuffle',
-                onPress: () => {
-                  if (tutorialSeen === false) markTutorialSeen();
-                  setPickerVisible(true);
-                },
+                onPress: () => setPickerVisible(true),
                 hidden: list.length === 0,
               },
               {
@@ -187,7 +181,7 @@ export default function WantToReadScreen() {
         visible={tutorialSeen === false && burgerRect !== null}
         targetRect={burgerRect}
         text="Ты можешь самостоятельно добавить книгу в свой список для чтения или выбрать из своего списка случайную и начать читать"
-        onConfirm={() => headerMenuRef.current?.openMenu()}
+        onConfirm={() => { markTutorialSeen(); headerMenuRef.current?.openMenu(); }}
         onSkip={markTutorialSeen}
       />
     </View>
