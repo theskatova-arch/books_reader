@@ -1,5 +1,6 @@
 import React from 'react';
 import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
@@ -18,18 +19,18 @@ export default function HomeScreen() {
         <Text style={styles.tagline}>Куда пойдём?</Text>
       </View>
 
-      <View style={styles.bottom}>
+      <TouchableOpacity
+        style={styles.promoCard}
+        activeOpacity={0.8}
+        onPress={() => Linking.openURL('https://t.me/nopopular_books_club')}
+      >
+        <Ionicons name="paper-plane" size={20} color={colors.primary} style={styles.promoIcon} />
         <Text style={styles.promoText}>
           Подписывайся на мой{' '}
-          <Text
-            style={styles.promoLink}
-            onPress={() => Linking.openURL('https://t.me/nopopular_books_club')}
-          >
-            Непопулярный книжный клуб
-          </Text>
+          <Text style={styles.promoLink}>Непопулярный книжный клуб</Text>
           , чтобы увидеть отзывы на книги
         </Text>
-      </View>
+      </TouchableOpacity>
 
       <View style={styles.buttons}>
         <TouchableOpacity
@@ -74,24 +75,34 @@ function makeStyles(
       paddingTop: topInset + 24,
       paddingBottom: bottomInset + 32,
     },
-    bottom: {
+    promoCard: {
       position: 'absolute',
-      bottom: bottomInset + 24,
+      bottom: bottomInset + 20,
       left: 24,
       right: 24,
-      alignItems: 'center',
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.primary + '44',
+      borderRadius: colors.radius,
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+      gap: 10,
+    },
+    promoIcon: {
+      marginTop: 1,
     },
     promoText: {
-      fontSize: 13,
+      flex: 1,
+      fontSize: 14,
       fontFamily: 'Inter_400Regular',
-      color: colors.mutedForeground,
-      textAlign: 'center',
-      lineHeight: 20,
+      color: colors.foreground,
+      lineHeight: 21,
     },
     promoLink: {
-      fontFamily: 'Inter_500Medium',
+      fontFamily: 'Inter_600SemiBold',
       color: colors.primary,
-      textDecorationLine: 'underline',
     },
     hero: {
       alignItems: 'center',

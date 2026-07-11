@@ -10,32 +10,13 @@
   "books": {
     "60e276b7-4943-44e9-a931-f50cfd0a9778": [
       {
-        "id": "c6b557d9-428a-404f-9108-df2673fae2dc",
-        "title": "Одно лето",
-        "author": "Nora Roberts",
-        "status": "read",
-        "addedAt": 1783750942117,
-        "coverUrl": "https://covers.openlibrary.org/b/id/6461131-M.jpg",
-        "startedReadingAt": 1783750945249,
-        "finishedAt": 1783750950366
-      },
-      {
-        "id": "cea54d27-e950-4815-b33e-7df83831f483",
-        "title": "Одно лето",
-        "author": "Nora Roberts",
-        "status": "read",
-        "addedAt": 1783750891596,
-        "coverUrl": "https://covers.openlibrary.org/b/id/6461131-M.jpg",
-        "startedReadingAt": 1783750909292,
-        "finishedAt": 1783750917300
-      },
-      {
-        "id": "6dc8c738-7791-4c60-b968-bc5078e0ac89",
-        "title": "Преступление и наказание",
-        "author": "Фёдор Михайлович Достоевский",
+        "id": "24bee3b5-dd46-482d-abda-5d6be37dc01e",
+        "title": "Время библиомантов",
+        "author": "Kai Meyer",
         "status": "reading",
-        "addedAt": 1783750846973,
-        "startedReadingAt": 1783750849972
+        "addedAt": 1783751366731,
+        "coverUrl": "https://covers.openlibrary.org/b/id/8739260-M.jpg",
+        "startedReadingAt": 1783751377424
       },
       {
         "id": "5888a759-8e43-4adf-96de-e95ea4d70fa4",
