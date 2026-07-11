@@ -10,6 +10,14 @@
   "books": {
     "60e276b7-4943-44e9-a931-f50cfd0a9778": [
       {
+        "id": "4e7bf2e6-b4b3-4695-96d2-a3b135fa14cd",
+        "title": "Бремя страстей человеческих",
+        "author": "Сомерсет Моэм",
+        "status": "want-to-read",
+        "addedAt": 1783745710119,
+        "coverUrl": "https://covers.openlibrary.org/b/id/5277723-M.jpg"
+      },
+      {
         "id": "ee644b27-c014-42bf-a796-effa905c2a76",
         "title": "Тень и кость",
         "author": "",
@@ -30,13 +38,6 @@
         "author": "Вербер",
         "status": "want-to-read",
         "addedAt": 1783501092943
-      },
-      {
-        "id": "f75e2f51-98ec-40f8-ba7e-2d60b3d1ae9e",
-        "title": "Бремя страстей человеческих",
-        "author": "Моэм",
-        "status": "want-to-read",
-        "addedAt": 1783500970463
       }
     ]
   }
