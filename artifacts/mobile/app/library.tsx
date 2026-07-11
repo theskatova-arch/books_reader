@@ -8,25 +8,34 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
-import { useOpenLibraryBooks, useOpenLibrarySearch, OpenLibraryBook } from '@/hooks/useOpenLibraryBooks';
+import {
+  useOpenLibraryBooks,
+  useOpenLibrarySearch,
+  OpenLibraryBook,
+  LibrarySearchParams,
+} from '@/hooks/useOpenLibraryBooks';
 import { useBooks } from '@/context/BooksContext';
 import { LibraryBookCard } from '@/components/LibraryBookCard';
-import { SearchBar } from '@/components/SearchBar';
 import { LibraryRandomPickerModal } from '@/components/LibraryRandomPickerModal';
+import { LibrarySearchModal } from '@/components/LibrarySearchModal';
 import { BackToHomeButton } from '@/components/BackToHomeButton';
+import { LIBRARY_GENRES } from '@/constants/libraryGenres';
+
+const ANY_GENRE = LIBRARY_GENRES[0]!;
+
+const EMPTY_PARAMS: LibrarySearchParams = { title: '', author: '', genre: ANY_GENRE };
 
 export default function LibraryScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const router = useRouter();
   const styles = makeStyles(colors, insets.bottom);
 
-  const [searchVisible, setSearchVisible] = useState(false);
-  const [searchQueryState, setSearchQuery] = useState('');
+  // null = browse mode; non-null = search mode with submitted params
+  const [submittedParams, setSubmittedParams] = useState<LibrarySearchParams | null>(null);
+  const [searchModalVisible, setSearchModalVisible] = useState(false);
   const [pickerVisible, setPickerVisible] = useState(false);
   const [addedKeys, setAddedKeys] = useState<Set<string>>(new Set());
 
@@ -38,10 +47,10 @@ export default function LibraryScreen() {
     error: searchError,
     loadMore: searchLoadMore,
     retry: searchRetry,
-  } = useOpenLibrarySearch(searchVisible ? searchQueryState : '');
+  } = useOpenLibrarySearch(submittedParams);
   const { addBook } = useBooks();
 
-  const isSearching = searchVisible && searchQueryState.trim().length > 0;
+  const isSearching = submittedParams !== null;
   const displayBooks = isSearching ? searchResults : books;
   const displayLoading = isSearching ? searchLoading : loading;
   const displayLoadingMore = isSearching ? searchLoadingMore : loadingMore;
@@ -66,6 +75,24 @@ export default function LibraryScreen() {
     }
   };
 
+  const handleSearch = (params: LibrarySearchParams) => {
+    setSubmittedParams(params);
+  };
+
+  const handleReset = () => {
+    setSubmittedParams(null);
+  };
+
+  /** Label summarising active filters for the header badge */
+  const searchSummary = (() => {
+    if (!submittedParams) return null;
+    const parts: string[] = [];
+    if (submittedParams.title) parts.push(`«${submittedParams.title}»`);
+    if (submittedParams.author) parts.push(submittedParams.author);
+    if (submittedParams.genre.subject) parts.push(submittedParams.genre.label);
+    return parts.length > 0 ? parts.join(' · ') : 'Все книги';
+  })();
+
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
 
   return (
@@ -82,19 +109,47 @@ export default function LibraryScreen() {
           },
         ]}
       >
-        <View>
+        <View style={styles.headerLeft}>
           <Text style={[styles.headerTitle, { color: colors.foreground }]}>
             Библиотека
           </Text>
+          {searchSummary && (
+            <View style={styles.searchBadgeRow}>
+              <Text
+                style={[styles.searchBadge, { color: colors.primary }]}
+                numberOfLines={1}
+              >
+                {searchSummary}
+              </Text>
+              <TouchableOpacity
+                onPress={handleReset}
+                hitSlop={8}
+                activeOpacity={0.7}
+              >
+                <Ionicons name="close-circle" size={16} color={colors.primary} />
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
+
         <View style={styles.headerActions}>
           <TouchableOpacity
-            style={[styles.iconBtn, { borderColor: colors.border }]}
-            onPress={() => setSearchVisible(true)}
+            style={[
+              styles.iconBtn,
+              {
+                borderColor: isSearching ? colors.primary : colors.border,
+                backgroundColor: isSearching ? colors.primary + '18' : 'transparent',
+              },
+            ]}
+            onPress={() => setSearchModalVisible(true)}
             activeOpacity={0.75}
             hitSlop={8}
           >
-            <Ionicons name="search-outline" size={20} color={colors.foreground} />
+            <Ionicons
+              name={isSearching ? 'search' : 'search-outline'}
+              size={20}
+              color={isSearching ? colors.primary : colors.foreground}
+            />
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.iconBtn, { borderColor: colors.border }]}
@@ -107,14 +162,6 @@ export default function LibraryScreen() {
           </TouchableOpacity>
         </View>
       </View>
-
-      {searchVisible && (
-        <SearchBar
-          value={searchQueryState}
-          onChangeText={setSearchQuery}
-          onClose={() => { setSearchVisible(false); setSearchQuery(''); }}
-        />
-      )}
 
       {displayLoading ? (
         <View style={styles.centered}>
@@ -158,7 +205,7 @@ export default function LibraryScreen() {
                   Ничего не найдено
                 </Text>
                 <Text style={[styles.subtitle, { color: colors.mutedForeground }]}>
-                  Попробуйте другой запрос
+                  Попробуйте изменить параметры поиска
                 </Text>
               </View>
             ) : null
@@ -176,6 +223,14 @@ export default function LibraryScreen() {
           }
         />
       )}
+
+      <LibrarySearchModal
+        visible={searchModalVisible}
+        initial={submittedParams ?? EMPTY_PARAMS}
+        onSearch={handleSearch}
+        onReset={handleReset}
+        onClose={() => setSearchModalVisible(false)}
+      />
 
       <LibraryRandomPickerModal
         visible={pickerVisible}
@@ -204,20 +259,30 @@ function makeStyles(
       paddingBottom: 14,
       borderBottomWidth: StyleSheet.hairlineWidth,
     },
+    headerLeft: {
+      flex: 1,
+      gap: 2,
+    },
     headerTitle: {
       fontSize: 26,
       fontFamily: 'Inter_700Bold',
       lineHeight: 32,
     },
-    headerSub: {
-      fontSize: 13,
-      fontFamily: 'Inter_400Regular',
-      marginTop: 2,
+    searchBadgeRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    searchBadge: {
+      fontSize: 12,
+      fontFamily: 'Inter_500Medium',
+      flexShrink: 1,
     },
     headerActions: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
+      marginLeft: 12,
     },
     iconBtn: {
       width: 40,

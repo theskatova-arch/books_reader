@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { LibraryGenre } from '@/constants/libraryGenres';
 
 export interface OpenLibraryBook {
   key: string;
@@ -6,6 +7,12 @@ export interface OpenLibraryBook {
   author: string;
   coverId: number | null;
   firstPublishYear: number | null;
+}
+
+export interface LibrarySearchParams {
+  title: string;
+  author: string;
+  genre: LibraryGenre;
 }
 
 const PAGE_SIZE = 20;
@@ -124,25 +131,22 @@ export async function pickRandomLibraryBook(
   return null;
 }
 
-function buildSearchQuery(term: string): string {
-  // Free-text search across the whole catalog (title/author), still
-  // constrained to a Russian-language edition so results match the rest of
-  // the Library screen. Deliberately drops the "subject:fiction" filter
-  // used for the browse feed — a user searching by name should be able to
-  // find a specific book even if Open Library didn't tag it as fiction.
-  return `${term} language:rus`;
+function buildSearchQuery(params: LibrarySearchParams): string {
+  const parts: string[] = [];
+  if (params.title.trim()) parts.push(params.title.trim());
+  if (params.author.trim()) parts.push(`author:"${params.author.trim()}"`);
+  if (params.genre.subject) parts.push(`subject:"${params.genre.subject}"`);
+  parts.push('language:rus');
+  return parts.join(' ');
 }
 
 /**
- * Searches the *entire* Open Library catalog by free text (title/author),
- * one page at a time — as opposed to filtering only the books already
- * loaded into the browse feed. Debounces the query so fast typing doesn't
- * fire a request per keystroke, and resets pagination whenever the query
- * text changes.
+ * Searches the Open Library catalog by structured params (title, author,
+ * genre). Pass null to skip fetching entirely (browse mode).
+ * Search fires immediately when params change — no debounce, since the
+ * query is triggered by explicit form submission, not keystroke-by-keystroke.
  */
-export function useOpenLibrarySearch(query: string) {
-  const trimmed = query.trim();
-
+export function useOpenLibrarySearch(params: LibrarySearchParams | null) {
   const [books, setBooks] = useState<OpenLibraryBook[]>([]);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
@@ -150,11 +154,6 @@ export function useOpenLibrarySearch(query: string) {
   const [hasMore, setHasMore] = useState(true);
 
   const isMounted = useRef(true);
-  // Bumped on every new query (and every explicit fetch) so a stale
-  // in-flight response — from a previous, now-irrelevant search term or a
-  // superseded request for the same term — can never overwrite newer
-  // state. Unlike a simple in-flight boolean lock, this lets a new query
-  // always issue its own request even while an older one is still pending.
   const requestTokenRef = useRef(0);
   const abortRef = useRef<AbortController | null>(null);
 
@@ -165,9 +164,14 @@ export function useOpenLibrarySearch(query: string) {
     };
   }, []);
 
-  const fetchPage = useCallback(async (term: string, nextPage: number, token: number) => {
-    // Cancel any older request — it's either for a stale query or a
-    // superseded page — so it can't race with this one for the network.
+  // Stable ref so fetchPage callback doesn't re-create on every params change
+  const paramsRef = useRef(params);
+  paramsRef.current = params;
+
+  const fetchPage = useCallback(async (nextPage: number, token: number) => {
+    const currentParams = paramsRef.current;
+    if (!currentParams) return;
+
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
@@ -177,7 +181,7 @@ export function useOpenLibrarySearch(query: string) {
 
     try {
       const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(
-        buildSearchQuery(term),
+        buildSearchQuery(currentParams),
       )}&page=${nextPage}&limit=${PAGE_SIZE}&fields=${FIELDS}&${EDITIONS_PARAMS}`;
       const res = await fetch(url, { signal: controller.signal });
       if (!res.ok) throw new Error(`Open Library вернул ошибку ${res.status}`);
@@ -195,8 +199,6 @@ export function useOpenLibrarySearch(query: string) {
       setPage(nextPage);
       setHasMore(data.docs.length === PAGE_SIZE && nextPage * PAGE_SIZE < data.numFound);
     } catch (e) {
-      // Aborts are expected when a newer query/page supersedes this
-      // request — not a real failure, so don't surface them as an error.
       if (e instanceof Error && e.name === 'AbortError') return;
       if (!isMounted.current || requestTokenRef.current !== token) return;
       setError(e instanceof Error ? e.message : 'Не удалось найти книги');
@@ -205,10 +207,9 @@ export function useOpenLibrarySearch(query: string) {
     }
   }, []);
 
-  // Debounced search-as-you-type: wait for a pause in typing before hitting
-  // the API, and reset to a fresh page 1 for every new query.
+  // Fire immediately on params change; reset to page 1 for every new search.
   useEffect(() => {
-    if (!trimmed) {
+    if (!params) {
       requestTokenRef.current += 1;
       abortRef.current?.abort();
       setBooks([]);
@@ -223,24 +224,20 @@ export function useOpenLibrarySearch(query: string) {
     setBooks([]);
     setPage(0);
     setHasMore(true);
-
-    const timer = setTimeout(() => {
-      fetchPage(trimmed, 1, token);
-    }, 400);
-
-    return () => clearTimeout(timer);
-  }, [trimmed, fetchPage]);
+    fetchPage(1, token);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [params, fetchPage]);
 
   const loadMore = useCallback(() => {
-    if (loading || !hasMore || !trimmed) return;
-    fetchPage(trimmed, page + 1, requestTokenRef.current);
-  }, [loading, hasMore, trimmed, page, fetchPage]);
+    if (loading || !hasMore || !params) return;
+    fetchPage(page + 1, requestTokenRef.current);
+  }, [loading, hasMore, params, page, fetchPage]);
 
   const retry = useCallback(() => {
-    if (!trimmed) return;
+    if (!params) return;
     const token = ++requestTokenRef.current;
-    fetchPage(trimmed, page === 0 ? 1 : page + 1, token);
-  }, [trimmed, page, fetchPage]);
+    fetchPage(page === 0 ? 1 : page + 1, token);
+  }, [params, page, fetchPage]);
 
   return {
     books,
