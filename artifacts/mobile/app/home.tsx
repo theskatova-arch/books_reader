@@ -13,11 +13,33 @@ export default function HomeScreen() {
 
   return (
     <View style={styles.root}>
-      <View style={styles.hero}>
-        <Text style={styles.bookEmoji}>📚</Text>
-        <Text style={styles.appName}>Книжная полка</Text>
-        <Text style={styles.tagline}>Куда пойдём?</Text>
+      <View style={styles.mainRow}>
+        <TouchableOpacity
+          style={[styles.squareButton, styles.primaryButton]}
+          activeOpacity={0.85}
+          onPress={() => router.push('/room')}
+        >
+          <Text style={styles.squareEmoji}>🛋️</Text>
+          <Text style={styles.primaryButtonLabel}>Моя комната</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.squareButton, styles.secondaryButton]}
+          activeOpacity={0.85}
+          onPress={() => router.push('/library')}
+        >
+          <Text style={styles.squareEmoji}>📖</Text>
+          <Text style={styles.secondaryButtonLabel}>Библиотека</Text>
+        </TouchableOpacity>
       </View>
+
+      <TouchableOpacity
+        style={styles.supportButton}
+        activeOpacity={0.85}
+        onPress={() => Linking.openURL('https://t.me/katyaskatova')}
+      >
+        <Text style={styles.supportButtonLabel}>Поддержка</Text>
+      </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.promoCard}
@@ -31,32 +53,6 @@ export default function HomeScreen() {
           , чтобы увидеть отзывы на книги
         </Text>
       </TouchableOpacity>
-
-      <View style={styles.buttons}>
-        <TouchableOpacity
-          style={[styles.button, styles.primaryButton]}
-          activeOpacity={0.85}
-          onPress={() => router.push('/room')}
-        >
-          <Text style={styles.primaryButtonLabel}>Моя комната</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.button, styles.secondaryButton]}
-          activeOpacity={0.85}
-          onPress={() => router.push('/library')}
-        >
-          <Text style={styles.secondaryButtonLabel}>Библиотека</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.button, styles.supportButton]}
-          activeOpacity={0.85}
-          onPress={() => Linking.openURL('https://t.me/katyaskatova')}
-        >
-          <Text style={styles.supportButtonLabel}>Поддержка</Text>
-        </TouchableOpacity>
-      </View>
     </View>
   );
 }
@@ -71,9 +67,56 @@ function makeStyles(
       flex: 1,
       backgroundColor: colors.background,
       justifyContent: 'center',
+      alignItems: 'center',
       paddingHorizontal: 24,
       paddingTop: topInset + 24,
       paddingBottom: bottomInset + 32,
+      gap: 16,
+    },
+    mainRow: {
+      flexDirection: 'row',
+      gap: 16,
+      width: '100%',
+    },
+    squareButton: {
+      flex: 1,
+      aspectRatio: 1,
+      borderRadius: colors.radius,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 10,
+    },
+    squareEmoji: {
+      fontSize: 36,
+    },
+    primaryButton: {
+      backgroundColor: colors.primary,
+    },
+    primaryButtonLabel: {
+      fontSize: 15,
+      fontFamily: 'Inter_600SemiBold',
+      color: colors.primaryForeground,
+      textAlign: 'center',
+    },
+    secondaryButton: {
+      backgroundColor: colors.card,
+      borderWidth: 1,
+      borderColor: colors.border,
+    },
+    secondaryButtonLabel: {
+      fontSize: 15,
+      fontFamily: 'Inter_600SemiBold',
+      color: colors.foreground,
+      textAlign: 'center',
+    },
+    supportButton: {
+      backgroundColor: 'transparent',
+      paddingVertical: 4,
+    },
+    supportButtonLabel: {
+      fontSize: 14,
+      fontFamily: 'Inter_400Regular',
+      color: colors.mutedForeground,
     },
     promoCard: {
       position: 'absolute',
@@ -103,60 +146,6 @@ function makeStyles(
     promoLink: {
       fontFamily: 'Inter_600SemiBold',
       color: colors.primary,
-    },
-    hero: {
-      alignItems: 'center',
-      marginBottom: 48,
-    },
-    bookEmoji: {
-      fontSize: 56,
-      marginBottom: 12,
-    },
-    appName: {
-      fontSize: 28,
-      fontFamily: 'Inter_700Bold',
-      color: colors.foreground,
-      letterSpacing: -0.5,
-    },
-    tagline: {
-      fontSize: 15,
-      fontFamily: 'Inter_400Regular',
-      color: colors.mutedForeground,
-      marginTop: 6,
-    },
-    buttons: {
-      gap: 14,
-    },
-    button: {
-      borderRadius: colors.radius,
-      paddingVertical: 16,
-      alignItems: 'center',
-    },
-    primaryButton: {
-      backgroundColor: colors.primary,
-    },
-    primaryButtonLabel: {
-      fontSize: 16,
-      fontFamily: 'Inter_600SemiBold',
-      color: colors.primaryForeground,
-    },
-    secondaryButton: {
-      backgroundColor: colors.card,
-      borderWidth: 1,
-      borderColor: colors.border,
-    },
-    secondaryButtonLabel: {
-      fontSize: 16,
-      fontFamily: 'Inter_600SemiBold',
-      color: colors.foreground,
-    },
-    supportButton: {
-      backgroundColor: 'transparent',
-    },
-    supportButtonLabel: {
-      fontSize: 14,
-      fontFamily: 'Inter_400Regular',
-      color: colors.mutedForeground,
     },
   });
 }
