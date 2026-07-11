@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
@@ -33,6 +33,14 @@ export default function HomeScreen() {
           onPress={() => router.push('/library')}
         >
           <Text style={styles.secondaryButtonLabel}>Библиотека</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.button, styles.supportButton]}
+          activeOpacity={0.85}
+          onPress={() => Linking.openURL('https://t.me/katyaskatova')}
+        >
+          <Text style={styles.supportButtonLabel}>Поддержка</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -98,6 +106,14 @@ function makeStyles(
       fontSize: 16,
       fontFamily: 'Inter_600SemiBold',
       color: colors.foreground,
+    },
+    supportButton: {
+      backgroundColor: 'transparent',
+    },
+    supportButtonLabel: {
+      fontSize: 14,
+      fontFamily: 'Inter_400Regular',
+      color: colors.mutedForeground,
     },
   });
 }
