@@ -26,11 +26,14 @@ interface HeaderMenuProps {
   /** Distance from the top of the screen to where the panel should appear. */
   topOffset: number;
   items: MenuItem[];
+  /** Called once the burger button has been laid out; provides screen-relative rect. */
+  onBurgerLayout?: (rect: { x: number; y: number; width: number; height: number }) => void;
 }
 
-export function HeaderMenu({ topOffset, items }: HeaderMenuProps) {
+export function HeaderMenu({ topOffset, items, onBurgerLayout }: HeaderMenuProps) {
   const colors = useColors();
   const [open, setOpen] = useState(false);
+  const burgerRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
 
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.92)).current;
@@ -79,8 +82,16 @@ export function HeaderMenu({ topOffset, items }: HeaderMenuProps) {
     <>
       {/* Burger button */}
       <TouchableOpacity
+        ref={burgerRef}
         style={[styles.burgerBtn, { borderColor: colors.border }]}
         onPress={openMenu}
+        onLayout={() => {
+          burgerRef.current?.measure(
+            (_x: number, _y: number, w: number, h: number, pageX: number, pageY: number) => {
+              onBurgerLayout?.({ x: pageX, y: pageY, width: w, height: h });
+            },
+          );
+        }}
         activeOpacity={0.75}
         hitSlop={8}
       >

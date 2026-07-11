@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { TutorialSpotlight, SpotlightRect } from '@/components/TutorialSpotlight';
+import { useTutorialStep } from '@/hooks/useTutorialStep';
 import {
   FlatList,
   Platform,
@@ -37,6 +39,9 @@ export default function WantToReadScreen() {
   const [pickerVisible, setPickerVisible] = useState(false);
   const [searchVisible, setSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const { seen: tutorialSeen, markSeen: markTutorialSeen } = useTutorialStep('room-burger');
+  const [burgerRect, setBurgerRect] = useState<SpotlightRect | null>(null);
 
   const list = books
     .filter((b) => b.status === 'want-to-read')
@@ -86,6 +91,7 @@ export default function WantToReadScreen() {
           </TouchableOpacity>
           <HeaderMenu
             topOffset={topPad + 114}
+            onBurgerLayout={setBurgerRect}
             items={[
               {
                 label: 'Добавить книгу',
@@ -167,6 +173,14 @@ export default function WantToReadScreen() {
           setPickerVisible(false);
         }}
         onClose={() => setPickerVisible(false)}
+      />
+
+      <TutorialSpotlight
+        visible={tutorialSeen === false && burgerRect !== null}
+        targetRect={burgerRect}
+        text="Ты можешь самостоятельно добавить книгу в свой список для чтения или выбрать из своего списка случайную и начать читать"
+        onConfirm={markTutorialSeen}
+        onSkip={markTutorialSeen}
       />
     </View>
   );
