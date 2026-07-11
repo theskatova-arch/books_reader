@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import { TutorialSpotlight, SpotlightRect } from '@/components/TutorialSpotlight';
 import { useTutorialStep } from '@/hooks/useTutorialStep';
 import {
@@ -17,7 +17,7 @@ import { useAuth } from '@/context/AuthContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
 import { RandomPickerModal } from '@/components/RandomPickerModal';
-import { HeaderMenu } from '@/components/HeaderMenu';
+import { HeaderMenu, HeaderMenuHandle } from '@/components/HeaderMenu';
 import { SearchBar } from '@/components/SearchBar';
 import { BackToHomeButton } from '@/components/BackToHomeButton';
 
@@ -42,6 +42,7 @@ export default function WantToReadScreen() {
 
   const { seen: tutorialSeen, markSeen: markTutorialSeen } = useTutorialStep('room-burger');
   const [burgerRect, setBurgerRect] = useState<SpotlightRect | null>(null);
+  const headerMenuRef = useRef<HeaderMenuHandle>(null);
 
   const list = books
     .filter((b) => b.status === 'want-to-read')
@@ -90,18 +91,25 @@ export default function WantToReadScreen() {
             <Ionicons name="search-outline" size={20} color={colors.foreground} />
           </TouchableOpacity>
           <HeaderMenu
+            ref={headerMenuRef}
             topOffset={topPad + 114}
             onBurgerLayout={setBurgerRect}
             items={[
               {
                 label: 'Добавить книгу',
                 icon: 'add-circle-outline',
-                onPress: () => setModalVisible(true),
+                onPress: () => {
+                  if (tutorialSeen === false) markTutorialSeen();
+                  setModalVisible(true);
+                },
               },
               {
                 label: 'Случайная книга',
                 icon: 'shuffle',
-                onPress: () => setPickerVisible(true),
+                onPress: () => {
+                  if (tutorialSeen === false) markTutorialSeen();
+                  setPickerVisible(true);
+                },
                 hidden: list.length === 0,
               },
               {
@@ -179,7 +187,7 @@ export default function WantToReadScreen() {
         visible={tutorialSeen === false && burgerRect !== null}
         targetRect={burgerRect}
         text="Ты можешь самостоятельно добавить книгу в свой список для чтения или выбрать из своего списка случайную и начать читать"
-        onConfirm={markTutorialSeen}
+        onConfirm={() => headerMenuRef.current?.openMenu()}
         onSkip={markTutorialSeen}
       />
     </View>

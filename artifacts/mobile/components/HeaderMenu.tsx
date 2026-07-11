@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import {
   Animated,
   Easing,
@@ -30,131 +30,140 @@ interface HeaderMenuProps {
   onBurgerLayout?: (rect: { x: number; y: number; width: number; height: number }) => void;
 }
 
-export function HeaderMenu({ topOffset, items, onBurgerLayout }: HeaderMenuProps) {
-  const colors = useColors();
-  const [open, setOpen] = useState(false);
-  const burgerRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
-
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const scaleAnim = useRef(new Animated.Value(0.92)).current;
-
-  const openMenu = () => {
-    setOpen(true);
-    fadeAnim.setValue(0);
-    scaleAnim.setValue(0.92);
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 180,
-        easing: Easing.out(Easing.cubic),
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 1,
-        duration: 180,
-        easing: Easing.out(Easing.back(1.4)),
-        useNativeDriver: true,
-      }),
-    ]).start();
-  };
-
-  const closeMenu = (then?: () => void) => {
-    Animated.parallel([
-      Animated.timing(fadeAnim, {
-        toValue: 0,
-        duration: 130,
-        useNativeDriver: true,
-      }),
-      Animated.timing(scaleAnim, {
-        toValue: 0.92,
-        duration: 130,
-        useNativeDriver: true,
-      }),
-    ]).start(() => {
-      setOpen(false);
-      then?.();
-    });
-  };
-
-  const visible = items.filter((it) => !it.hidden);
-
-  return (
-    <>
-      {/* Burger button */}
-      <TouchableOpacity
-        ref={burgerRef}
-        style={[styles.burgerBtn, { borderColor: colors.border }]}
-        onPress={openMenu}
-        onLayout={() => {
-          burgerRef.current?.measure(
-            (_x: number, _y: number, w: number, h: number, pageX: number, pageY: number) => {
-              onBurgerLayout?.({ x: pageX, y: pageY, width: w, height: h });
-            },
-          );
-        }}
-        activeOpacity={0.75}
-        hitSlop={8}
-      >
-        <Ionicons name="menu" size={22} color={colors.foreground} />
-      </TouchableOpacity>
-
-      {/* Dropdown overlay */}
-      <Modal
-        visible={open}
-        transparent
-        animationType="none"
-        onRequestClose={() => closeMenu()}
-        statusBarTranslucent
-      >
-        <Pressable style={styles.backdrop} onPress={() => closeMenu()}>
-          {/* Stop propagation so tapping the panel itself doesn't close */}
-          <Pressable onPress={() => {}}>
-            <Animated.View
-              style={[
-                styles.panel,
-                {
-                  top: topOffset,
-                  backgroundColor: colors.card,
-                  borderColor: colors.border,
-                  shadowColor: colors.foreground,
-                  opacity: fadeAnim,
-                  transform: [{ scale: scaleAnim }],
-                },
-              ]}
-            >
-              {visible.map((item, idx) => (
-                <React.Fragment key={item.label}>
-                  {idx > 0 && (
-                    <View style={[styles.divider, { backgroundColor: colors.border }]} />
-                  )}
-                  <TouchableOpacity
-                    style={styles.menuItem}
-                    onPress={() => closeMenu(item.onPress)}
-                    activeOpacity={0.7}
-                  >
-                    <Ionicons
-                      name={item.icon}
-                      size={18}
-                      color={item.destructive ? '#e05c5c' : colors.foreground}
-                    />
-                    <Text
-                      style={[
-                        styles.menuLabel,
-                        { color: item.destructive ? '#e05c5c' : colors.foreground },
-                      ]}
-                    >
-                      {item.label}
-                    </Text>
-                  </TouchableOpacity>
-                </React.Fragment>
-              ))}
-            </Animated.View>
-          </Pressable>
-        </Pressable>
-      </Modal>
-    </>
-  );
+export interface HeaderMenuHandle {
+  /** Programmatically opens the dropdown menu. */
+  openMenu: () => void;
 }
+
+export const HeaderMenu = forwardRef<HeaderMenuHandle, HeaderMenuProps>(
+  function HeaderMenu({ topOffset, items, onBurgerLayout }, ref) {
+    const colors = useColors();
+    const [open, setOpen] = useState(false);
+    const burgerRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
+
+    const fadeAnim = useRef(new Animated.Value(0)).current;
+    const scaleAnim = useRef(new Animated.Value(0.92)).current;
+
+    const openMenu = () => {
+      setOpen(true);
+      fadeAnim.setValue(0);
+      scaleAnim.setValue(0.92);
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 180,
+          easing: Easing.out(Easing.cubic),
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 1,
+          duration: 180,
+          easing: Easing.out(Easing.back(1.4)),
+          useNativeDriver: true,
+        }),
+      ]).start();
+    };
+
+    const closeMenu = (then?: () => void) => {
+      Animated.parallel([
+        Animated.timing(fadeAnim, {
+          toValue: 0,
+          duration: 130,
+          useNativeDriver: true,
+        }),
+        Animated.timing(scaleAnim, {
+          toValue: 0.92,
+          duration: 130,
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        setOpen(false);
+        then?.();
+      });
+    };
+
+    useImperativeHandle(ref, () => ({ openMenu }), []);
+
+    const visible = items.filter((it) => !it.hidden);
+
+    return (
+      <>
+        {/* Burger button */}
+        <TouchableOpacity
+          ref={burgerRef}
+          style={[styles.burgerBtn, { borderColor: colors.border }]}
+          onPress={openMenu}
+          onLayout={() => {
+            burgerRef.current?.measure(
+              (_x: number, _y: number, w: number, h: number, pageX: number, pageY: number) => {
+                onBurgerLayout?.({ x: pageX, y: pageY, width: w, height: h });
+              },
+            );
+          }}
+          activeOpacity={0.75}
+          hitSlop={8}
+        >
+          <Ionicons name="menu" size={22} color={colors.foreground} />
+        </TouchableOpacity>
+
+        {/* Dropdown overlay */}
+        <Modal
+          visible={open}
+          transparent
+          animationType="none"
+          onRequestClose={() => closeMenu()}
+          statusBarTranslucent
+        >
+          <Pressable style={styles.backdrop} onPress={() => closeMenu()}>
+            {/* Stop propagation so tapping the panel itself doesn't close */}
+            <Pressable onPress={() => {}}>
+              <Animated.View
+                style={[
+                  styles.panel,
+                  {
+                    top: topOffset,
+                    backgroundColor: colors.card,
+                    borderColor: colors.border,
+                    shadowColor: colors.foreground,
+                    opacity: fadeAnim,
+                    transform: [{ scale: scaleAnim }],
+                  },
+                ]}
+              >
+                {visible.map((item, idx) => (
+                  <React.Fragment key={item.label}>
+                    {idx > 0 && (
+                      <View style={[styles.divider, { backgroundColor: colors.border }]} />
+                    )}
+                    <TouchableOpacity
+                      style={styles.menuItem}
+                      onPress={() => closeMenu(item.onPress)}
+                      activeOpacity={0.7}
+                    >
+                      <Ionicons
+                        name={item.icon}
+                        size={18}
+                        color={item.destructive ? '#e05c5c' : colors.foreground}
+                      />
+                      <Text
+                        style={[
+                          styles.menuLabel,
+                          { color: item.destructive ? '#e05c5c' : colors.foreground },
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                    </TouchableOpacity>
+                  </React.Fragment>
+                ))}
+              </Animated.View>
+            </Pressable>
+          </Pressable>
+        </Modal>
+      </>
+    );
+  }
+);
 
 const styles = StyleSheet.create({
   burgerBtn: {
