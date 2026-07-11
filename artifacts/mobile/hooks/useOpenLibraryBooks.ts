@@ -7,6 +7,8 @@ export interface OpenLibraryBook {
   author: string;
   coverId: number | null;
   firstPublishYear: number | null;
+  /** Filtered subject tags from Open Library (up to 5). */
+  subjects: string[];
 }
 
 export interface LibrarySearchParams {
@@ -47,7 +49,34 @@ interface SearchDoc {
   author_name?: string[];
   cover_i?: number;
   first_publish_year?: number;
+  subject?: string[];
   editions?: { docs: EditionDoc[] };
+}
+
+const SUBJECT_NOISE = [
+  /reading level/i,
+  /grade \d/i,
+  /open library/i,
+  /long now/i,
+  /nouvelles/i,
+  /novela/i,
+  /syllabus/i,
+  /accessible book/i,
+  /protected daisy/i,
+  /in library/i,
+  /\d{4}/,
+  /^general$/i,
+  /^readers?$/i,
+  /^adaptations$/i,
+  /^dictionaries$/i,
+  /^study guides$/i,
+  /^literary$/i,
+];
+
+function filterSubjects(raw: string[]): string[] {
+  return raw
+    .filter((s) => s.length <= 45 && !SUBJECT_NOISE.some((p) => p.test(s)))
+    .slice(0, 5);
 }
 
 interface SearchResponse {
@@ -66,10 +95,39 @@ function toBook(doc: SearchDoc): OpenLibraryBook {
     author: doc.author_name?.[0] ?? '',
     coverId: doc.cover_i ?? null,
     firstPublishYear: doc.first_publish_year ?? null,
+    subjects: filterSubjects(doc.subject ?? []),
   };
 }
 
-const FIELDS = 'key,title,author_name,cover_i,first_publish_year,editions';
+const FIELDS = 'key,title,author_name,cover_i,first_publish_year,subject,editions';
+
+/**
+ * Looks up subject tags for any book by title and author via Open Library
+ * search. Used by the room random picker for books that were not sourced
+ * from the Library screen and therefore carry no OL subjects yet.
+ */
+export async function fetchSubjectsByTitleAuthor(
+  title: string,
+  author: string,
+  signal?: AbortSignal,
+): Promise<string[]> {
+  const q = author.trim()
+    ? `${title.trim()} author:"${author.trim()}" language:rus`
+    : `${title.trim()} language:rus`;
+  const url = `https://openlibrary.org/search.json?q=${encodeURIComponent(q)}&fields=subject&limit=3`;
+  try {
+    const res = await fetch(url, signal ? { signal } : undefined);
+    if (!res.ok) return [];
+    const data: { docs: { subject?: string[] }[] } = await res.json();
+    for (const doc of data.docs) {
+      const filtered = filterSubjects(doc.subject ?? []);
+      if (filtered.length > 0) return filtered;
+    }
+    return [];
+  } catch {
+    return [];
+  }
+}
 
 // Open Library's search endpoint refuses to page arbitrarily deep into a
 // result set; cap how far we'll jump so a huge numFound doesn't produce a

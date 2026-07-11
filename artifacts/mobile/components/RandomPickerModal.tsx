@@ -5,6 +5,7 @@ import {
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -15,6 +16,7 @@ import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 import { Book } from '@/context/BooksContext';
+import { fetchSubjectsByTitleAuthor } from '@/hooks/useOpenLibraryBooks';
 
 interface RandomPickerModalProps {
   visible: boolean;
@@ -41,6 +43,8 @@ export function RandomPickerModal({
 
   const [picked, setPicked] = useState<Book | null>(null);
   const [spinning, setSpinning] = useState(false);
+  const [subjects, setSubjects] = useState<string[]>([]);
+  const subjectAbortRef = useRef<AbortController | null>(null);
 
   // Card animation values
   const cardOpacity = useRef(new Animated.Value(0)).current;
@@ -112,6 +116,19 @@ export function RandomPickerModal({
   useEffect(() => {
     isVisibleRef.current = visible;
   }, [visible]);
+
+  // Fetch subjects from Open Library in the background after a book is picked.
+  useEffect(() => {
+    subjectAbortRef.current?.abort();
+    if (!picked) { setSubjects([]); return; }
+    const controller = new AbortController();
+    subjectAbortRef.current = controller;
+    setSubjects([]);
+    fetchSubjectsByTitleAuthor(picked.title, picked.author, controller.signal).then((tags) => {
+      if (!controller.signal.aborted) setSubjects(tags);
+    });
+    return () => controller.abort();
+  }, [picked]);
 
   // Open/close lifecycle — books snapshot captured at open time.
   const booksRef = useRef(books);
@@ -267,6 +284,24 @@ export function RandomPickerModal({
                     {picked.author}
                   </Text>
                 ) : null}
+                {subjects.length > 0 && (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.tagsRow}
+                  >
+                    {subjects.map((s) => (
+                      <View
+                        key={s}
+                        style={[styles.tag, { backgroundColor: colors.background, borderColor: colors.border }]}
+                      >
+                        <Text style={[styles.tagText, { color: colors.primary }]} numberOfLines={1}>
+                          {s}
+                        </Text>
+                      </View>
+                    ))}
+                  </ScrollView>
+                )}
               </View>
             </Animated.View>
           )}
@@ -389,6 +424,21 @@ const styles = StyleSheet.create({
   bookAuthor: {
     fontSize: 14,
     fontFamily: 'Inter_400Regular',
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    gap: 6,
+    paddingTop: 2,
+  },
+  tag: {
+    borderRadius: 6,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  tagText: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
   },
   hint: {
     fontSize: 13,

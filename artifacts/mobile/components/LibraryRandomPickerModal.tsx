@@ -5,6 +5,7 @@ import {
   Modal,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -310,6 +311,24 @@ export function LibraryRandomPickerModal({
                     {picked.author}
                   </Text>
                 ) : null}
+                {picked.subjects.length > 0 && (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.tagsRow}
+                  >
+                    {picked.subjects.map((s) => (
+                      <View
+                        key={s}
+                        style={[styles.tag, { backgroundColor: colors.background, borderColor: colors.border }]}
+                      >
+                        <Text style={[styles.tagText, { color: colors.primary }]} numberOfLines={1}>
+                          {s}
+                        </Text>
+                      </View>
+                    ))}
+                  </ScrollView>
+                )}
               </View>
             </Animated.View>
           )}
@@ -441,6 +460,21 @@ const styles = StyleSheet.create({
   bookAuthor: {
     fontSize: 14,
     fontFamily: 'Inter_400Regular',
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    gap: 6,
+    paddingTop: 2,
+  },
+  tag: {
+    borderRadius: 6,
+    borderWidth: 1,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  tagText: {
+    fontSize: 11,
+    fontFamily: 'Inter_500Medium',
   },
   hint: {
     fontSize: 13,
