@@ -14,7 +14,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 import { useBooks } from '@/context/BooksContext';
-import { useAuth } from '@/context/AuthContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
 import { RandomPickerModal } from '@/components/RandomPickerModal';
@@ -35,7 +34,6 @@ export default function WantToReadScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { books, moveBook } = useBooks();
-  const { logout, username } = useAuth();
   const [modalVisible, setModalVisible] = useState(false);
   const [pickerVisible, setPickerVisible] = useState(false);
   const [searchVisible, setSearchVisible] = useState(false);
@@ -113,12 +111,6 @@ export default function WantToReadScreen() {
                 icon: 'shuffle',
                 onPress: () => setPickerVisible(true),
                 hidden: list.length === 0,
-              },
-              {
-                label: 'Выйти',
-                icon: 'log-out-outline',
-                onPress: () => logout(),
-                destructive: true,
               },
             ]}
           />

@@ -11,7 +11,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 import { useBooks } from '@/context/BooksContext';
-import { useAuth } from '@/context/AuthContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
 import { HeaderMenu, HeaderMenuHandle } from '@/components/HeaderMenu';
@@ -32,7 +31,6 @@ export default function ReadingScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { books, moveBook } = useBooks();
-  const { logout } = useAuth();
   const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -74,12 +72,6 @@ export default function ReadingScreen() {
               label: 'Добавить книгу',
               icon: 'add-circle-outline',
               onPress: () => setModalVisible(true),
-            },
-            {
-              label: 'Выйти',
-              icon: 'log-out-outline',
-              onPress: () => logout(),
-              destructive: true,
             },
           ]}
         />

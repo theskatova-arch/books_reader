@@ -11,7 +11,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 import { useBooks } from '@/context/BooksContext';
-import { useAuth } from '@/context/AuthContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
 import { MonthYearPickerModal } from '@/components/MonthYearPickerModal';
@@ -44,7 +43,6 @@ export default function ReadScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { books } = useBooks();
-  const { logout } = useAuth();
 
   const { seen: finishReadSeen } = useTutorialStep('room-finish-reading');
   const { seen: readBurgerSeen, markSeen: markReadBurgerSeen } = useTutorialStep('room-read-burger');
@@ -142,12 +140,6 @@ export default function ReadScreen() {
                 label: filter ? `Фильтр: ${filterLabel}` : 'Фильтр',
                 icon: filter ? 'funnel' : 'funnel-outline',
                 onPress: () => setPickerVisible(true),
-              },
-              {
-                label: 'Выйти',
-                icon: 'log-out-outline',
-                onPress: () => logout(),
-                destructive: true,
               },
             ]}
           />

@@ -5,11 +5,34 @@ import React, {
   useEffect,
   useState,
 } from 'react';
-import { booksApi } from '@/lib/api';
-import { useAuth } from '@/context/AuthContext';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { Book, BookStatus } from '@/types/books';
 
 export type { BookStatus, Book };
+
+const STORAGE_KEY = '@books:data';
+
+function generateId(): string {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2);
+}
+
+async function loadBooks(): Promise<Book[]> {
+  try {
+    const raw = await AsyncStorage.getItem(STORAGE_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw) as Book[];
+  } catch {
+    return [];
+  }
+}
+
+async function saveBooks(books: Book[]): Promise<void> {
+  try {
+    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(books));
+  } catch {
+    // ignore
+  }
+}
 
 interface BooksContextType {
   books: Book[];
@@ -38,13 +61,11 @@ export function BooksProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const { token } = useAuth();
-
   const reload = useCallback(async () => {
     setIsLoading(true);
     setError(null);
     try {
-      const data = await booksApi.list();
+      const data = await loadBooks();
       setBooks(data);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Ошибка загрузки');
@@ -54,19 +75,14 @@ export function BooksProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (token) {
-      reload();
-    } else {
-      setBooks([]);
-      setIsLoading(false);
-      setError(null);
-    }
-  }, [token, reload]);
+    reload();
+  }, [reload]);
 
   const addBook = useCallback(
     async (title: string, author: string, status: BookStatus, coverUrl?: string) => {
       const now = Date.now();
-      const book = await booksApi.create({
+      const book: Book = {
+        id: generateId(),
         title: title.trim(),
         author: author.trim(),
         status,
@@ -74,10 +90,12 @@ export function BooksProvider({ children }: { children: React.ReactNode }) {
         startedReadingAt: status === 'reading' ? now : undefined,
         finishedAt: status === 'read' ? now : undefined,
         coverUrl,
-      });
-      setBooks((prev) => [book, ...prev]);
+      };
+      const next = [book, ...books];
+      setBooks(next);
+      await saveBooks(next);
     },
-    [],
+    [books],
   );
 
   const moveBook = useCallback(
@@ -85,89 +103,46 @@ export function BooksProvider({ children }: { children: React.ReactNode }) {
       const current = books.find((b) => b.id === id);
       if (!current) return;
 
-      const payload: { status: BookStatus; startedReadingAt?: number; finishedAt?: number } = {
-        status: newStatus,
-      };
+      const patch: Partial<Book> = { status: newStatus };
       if (newStatus === 'reading' && current.startedReadingAt == null) {
-        payload.startedReadingAt = Date.now();
+        patch.startedReadingAt = Date.now();
       }
       if (newStatus === 'read' && current.finishedAt == null) {
-        payload.finishedAt = Date.now();
+        patch.finishedAt = Date.now();
       }
 
-      // Optimistic update
-      setBooks((prev) =>
-        prev.map((b) =>
-          b.id === id ? { ...b, ...payload } : b,
-        ),
-      );
-
-      try {
-        const updated = await booksApi.update(id, payload);
-        setBooks((prev) => prev.map((b) => (b.id === id ? updated : b)));
-      } catch {
-        // Roll back on failure
-        setBooks((prev) => prev.map((b) => (b.id === id ? current : b)));
-        throw new Error('Не удалось переместить книгу');
-      }
+      const next = books.map((b) => (b.id === id ? { ...b, ...patch } : b));
+      setBooks(next);
+      await saveBooks(next);
     },
     [books],
   );
 
   const deleteBook = useCallback(
     async (id: string) => {
-      const snapshot = books;
-      setBooks((prev) => prev.filter((b) => b.id !== id));
-      try {
-        await booksApi.remove(id);
-      } catch {
-        setBooks(snapshot);
-        throw new Error('Не удалось удалить книгу');
-      }
+      const next = books.filter((b) => b.id !== id);
+      setBooks(next);
+      await saveBooks(next);
     },
     [books],
   );
 
   const updateDates = useCallback(
-    async (
-      id: string,
-      fields: { startedReadingAt?: number; finishedAt?: number },
-    ) => {
-      const current = books.find((b) => b.id === id);
-      if (!current) return;
-
-      setBooks((prev) =>
-        prev.map((b) => (b.id === id ? { ...b, ...fields } : b)),
-      );
-      try {
-        const updated = await booksApi.update(id, fields);
-        setBooks((prev) => prev.map((b) => (b.id === id ? updated : b)));
-      } catch {
-        setBooks((prev) => prev.map((b) => (b.id === id ? current : b)));
-        throw new Error('Не удалось обновить даты');
-      }
+    async (id: string, fields: { startedReadingAt?: number; finishedAt?: number }) => {
+      const next = books.map((b) => (b.id === id ? { ...b, ...fields } : b));
+      setBooks(next);
+      await saveBooks(next);
     },
     [books],
   );
 
   const updateComment = useCallback(
     async (id: string, comment: string | null) => {
-      const current = books.find((b) => b.id === id);
-      if (!current) return;
-
-      setBooks((prev) =>
-        prev.map((b) =>
-          b.id === id ? { ...b, comment: comment ?? undefined } : b,
-        ),
+      const next = books.map((b) =>
+        b.id === id ? { ...b, comment: comment ?? undefined } : b,
       );
-      try {
-        // Pass comment directly — null is valid JSON and tells the server to clear the field.
-        const updated = await booksApi.update(id, { comment });
-        setBooks((prev) => prev.map((b) => (b.id === id ? updated : b)));
-      } catch {
-        setBooks((prev) => prev.map((b) => (b.id === id ? current : b)));
-        throw new Error('Не удалось сохранить отзыв');
-      }
+      setBooks(next);
+      await saveBooks(next);
     },
     [books],
   );
