@@ -10,11 +10,12 @@
   "books": {
     "60e276b7-4943-44e9-a931-f50cfd0a9778": [
       {
-        "id": "36a203d0-71e7-4a38-83c1-ba14854bd5a7",
+        "id": "ac490d4d-0d91-420d-8c45-1602ebe2ec72",
         "title": "Маленький принц",
         "author": "Antoine de Saint-Exupéry",
         "status": "want-to-read",
-        "addedAt": 1783686231600
+        "addedAt": 1783743420075,
+        "coverUrl": "https://covers.openlibrary.org/b/id/10708272-M.jpg"
       },
       {
         "id": "ee644b27-c014-42bf-a796-effa905c2a76",
