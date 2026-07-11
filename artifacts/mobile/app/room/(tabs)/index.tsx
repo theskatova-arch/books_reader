@@ -1,4 +1,5 @@
 import React, { useRef, useState } from 'react';
+import { useRouter } from 'expo-router';
 import { TutorialSpotlight, SpotlightRect } from '@/components/TutorialSpotlight';
 import { useTutorialStep } from '@/hooks/useTutorialStep';
 import {
@@ -39,6 +40,8 @@ export default function WantToReadScreen() {
   const [pickerVisible, setPickerVisible] = useState(false);
   const [searchVisible, setSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const router = useRouter();
 
   const { seen: tutorialSeen, markSeen: markTutorialSeen } = useTutorialStep('room-burger');
   const [burgerRect, setBurgerRect] = useState<SpotlightRect | null>(null);
@@ -202,6 +205,7 @@ export default function WantToReadScreen() {
         onConfirm={() => {
           markStartReadSeen();
           if (list[0]) moveBook(list[0].id, 'reading');
+          router.navigate('/room/reading');
         }}
         onSkip={markStartReadSeen}
       />

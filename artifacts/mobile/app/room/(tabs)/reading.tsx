@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   FlatList,
   Platform,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
@@ -14,8 +14,10 @@ import { useBooks } from '@/context/BooksContext';
 import { useAuth } from '@/context/AuthContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
-import { HeaderMenu } from '@/components/HeaderMenu';
+import { HeaderMenu, HeaderMenuHandle } from '@/components/HeaderMenu';
 import { BackToHomeButton } from '@/components/BackToHomeButton';
+import { TutorialSpotlight, SpotlightRect } from '@/components/TutorialSpotlight';
+import { useTutorialStep } from '@/hooks/useTutorialStep';
 
 function pluralBooks(n: number): string {
   const mod10 = n % 10;
@@ -29,9 +31,14 @@ function pluralBooks(n: number): string {
 export default function ReadingScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { books } = useBooks();
+  const { books, moveBook } = useBooks();
   const { logout } = useAuth();
+  const router = useRouter();
   const [modalVisible, setModalVisible] = useState(false);
+
+  const { seen: startReadSeen } = useTutorialStep('room-start-reading');
+  const { seen: finishReadSeen, markSeen: markFinishReadSeen } = useTutorialStep('room-finish-reading');
+  const [finishReadRect, setFinishReadRect] = useState<SpotlightRect | null>(null);
 
   const list = books
     .filter((b) => b.status === 'reading')
@@ -81,7 +88,16 @@ export default function ReadingScreen() {
       <FlatList
         data={list}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <BookCard book={item} />}
+        renderItem={({ item, index }) => (
+          <BookCard
+            book={item}
+            onFinishReadingLayout={
+              index === 0 && startReadSeen === true && finishReadSeen === false
+                ? setFinishReadRect
+                : undefined
+            }
+          />
+        )}
         contentContainerStyle={[
           styles.listContent,
           list.length === 0 && styles.centered,
@@ -113,6 +129,18 @@ export default function ReadingScreen() {
         onClose={() => setModalVisible(false)}
         targetStatus="reading"
       />
+
+      <TutorialSpotlight
+        visible={startReadSeen === true && finishReadSeen === false && finishReadRect !== null}
+        targetRect={finishReadRect}
+        text={"Когда закончишь читать книгу, переведи ее в список «Прочитано»"}
+        onConfirm={() => {
+          markFinishReadSeen();
+          if (list[0]) moveBook(list[0].id, 'read');
+          router.navigate('/room/read');
+        }}
+        onSkip={markFinishReadSeen}
+      />
     </View>
   );
 }
@@ -138,26 +166,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontFamily: 'Inter_400Regular',
     marginTop: 2,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   listContent: {
     paddingTop: 12,

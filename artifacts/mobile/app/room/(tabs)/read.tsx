@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
   FlatList,
   Platform,
@@ -15,7 +15,9 @@ import { useAuth } from '@/context/AuthContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
 import { MonthYearPickerModal } from '@/components/MonthYearPickerModal';
-import { HeaderMenu } from '@/components/HeaderMenu';
+import { HeaderMenu, HeaderMenuHandle } from '@/components/HeaderMenu';
+import { TutorialSpotlight, SpotlightRect } from '@/components/TutorialSpotlight';
+import { useTutorialStep } from '@/hooks/useTutorialStep';
 import { SearchBar } from '@/components/SearchBar';
 import { BackToHomeButton } from '@/components/BackToHomeButton';
 
@@ -43,6 +45,11 @@ export default function ReadScreen() {
   const insets = useSafeAreaInsets();
   const { books } = useBooks();
   const { logout } = useAuth();
+
+  const { seen: finishReadSeen } = useTutorialStep('room-finish-reading');
+  const { seen: readBurgerSeen, markSeen: markReadBurgerSeen } = useTutorialStep('room-read-burger');
+  const [readBurgerRect, setReadBurgerRect] = useState<SpotlightRect | null>(null);
+  const readMenuRef = useRef<HeaderMenuHandle>(null);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [pickerVisible, setPickerVisible] = useState(false);
@@ -122,7 +129,9 @@ export default function ReadScreen() {
             <Ionicons name="search-outline" size={20} color={colors.foreground} />
           </TouchableOpacity>
           <HeaderMenu
+            ref={readMenuRef}
             topOffset={topPad + 114}
+            onBurgerLayout={setReadBurgerRect}
             items={[
               {
                 label: 'Добавить книгу',
@@ -224,6 +233,14 @@ export default function ReadScreen() {
           setPickerVisible(false);
         }}
         onCancel={() => setPickerVisible(false)}
+      />
+
+      <TutorialSpotlight
+        visible={finishReadSeen === true && readBurgerSeen === false && readBurgerRect !== null}
+        targetRect={readBurgerRect}
+        text="Ты можешь отфильтровать книги по дате завершения чтения и узнать, сколько прочитал за год!"
+        onConfirm={() => { markReadBurgerSeen(); readMenuRef.current?.openMenu(); }}
+        onSkip={markReadBurgerSeen}
       />
     </View>
   );

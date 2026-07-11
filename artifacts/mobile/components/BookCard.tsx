@@ -20,6 +20,8 @@ interface BookCardProps {
   book: Book;
   /** If provided, called with the screen-relative rect of the "Начать читать" button. */
   onStartReadingLayout?: (rect: { x: number; y: number; width: number; height: number }) => void;
+  /** If provided, called with the screen-relative rect of the "Завершить чтение" button. */
+  onFinishReadingLayout?: (rect: { x: number; y: number; width: number; height: number }) => void;
 }
 
 type EditingField = 'startedReadingAt' | 'finishedAt';
@@ -78,11 +80,12 @@ function DateChip({
   );
 }
 
-export function BookCard({ book, onStartReadingLayout }: BookCardProps) {
+export function BookCard({ book, onStartReadingLayout, onFinishReadingLayout }: BookCardProps) {
   const colors = useColors();
   const { moveBook, deleteBook, updateDates, updateComment } = useBooks();
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const startReadingBtnRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
+  const finishReadingBtnRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
 
   const [editingField, setEditingField] = useState<EditingField | null>(null);
   const [commentVisible, setCommentVisible] = useState(false);
@@ -236,12 +239,24 @@ export function BookCard({ book, onStartReadingLayout }: BookCardProps) {
                 </>
               )}
               {book.status === 'reading' && (
-                <ActionButton
-                  icon="checkmark-circle"
-                  label="Завершить чтение"
-                  color={colors.primary}
+                <TouchableOpacity
+                  ref={finishReadingBtnRef}
+                  style={[styles.actionBtn, { borderColor: colors.primary }]}
                   onPress={() => handleMove('read')}
-                />
+                  onLayout={() => {
+                    finishReadingBtnRef.current?.measure(
+                      (_x: number, _y: number, w: number, h: number, px: number, py: number) => {
+                        onFinishReadingLayout?.({ x: px, y: py, width: w, height: h });
+                      },
+                    );
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="checkmark-circle" size={16} color={colors.primary} />
+                  <Text style={[styles.actionBtnLabel, { color: colors.primary }]}>
+                    Завершить чтение
+                  </Text>
+                </TouchableOpacity>
               )}
             </View>
           )}
