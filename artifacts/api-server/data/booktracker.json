@@ -8,43 +8,6 @@
     }
   },
   "books": {
-    "60e276b7-4943-44e9-a931-f50cfd0a9778": [
-      {
-        "id": "737a7731-607e-4903-8517-16ad0440b936",
-        "title": "Стоп!",
-        "author": "Виктор Лапицкий",
-        "status": "reading",
-        "addedAt": 1783749516997,
-        "startedReadingAt": 1783749528549
-      },
-      {
-        "id": "8dd796dc-9807-43e1-ae71-8fa34e301371",
-        "title": "Пуритане",
-        "author": "В. Скотт",
-        "status": "read",
-        "addedAt": 1783749464375,
-        "coverUrl": "https://covers.openlibrary.org/b/id/5767068-M.jpg",
-        "startedReadingAt": 1783749531550,
-        "finishedAt": 1783749540751
-      },
-      {
-        "id": "21704d5c-4e34-43ba-8a64-912eecdc7f23",
-        "title": "Преступление и наказание",
-        "author": "Фёдор Михайлович Достоевский",
-        "status": "read",
-        "addedAt": 1783749415844,
-        "startedReadingAt": 1783749420111,
-        "finishedAt": 1783749432694
-      },
-      {
-        "id": "0cfd088a-eb62-4013-80ae-db030ba69653",
-        "title": "Бремя полуверок",
-        "author": "Oleg Samorodniĭ",
-        "status": "read",
-        "addedAt": 1783748730968,
-        "startedReadingAt": 1783748737512,
-        "finishedAt": 1783748743320
-      }
-    ]
+    "60e276b7-4943-44e9-a931-f50cfd0a9778": []
   }
 }

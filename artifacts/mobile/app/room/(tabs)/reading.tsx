@@ -92,7 +92,7 @@ export default function ReadingScreen() {
           <BookCard
             book={item}
             onFinishReadingLayout={
-              index === 0 && startReadSeen === true && finishReadSeen === false
+              index === 0 && finishReadSeen === false
                 ? setFinishReadRect
                 : undefined
             }
