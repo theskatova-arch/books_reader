@@ -18,6 +18,8 @@ import { CommentModal } from '@/components/CommentModal';
 
 interface BookCardProps {
   book: Book;
+  /** If provided, called with the screen-relative rect of the "Начать читать" button. */
+  onStartReadingLayout?: (rect: { x: number; y: number; width: number; height: number }) => void;
 }
 
 type EditingField = 'startedReadingAt' | 'finishedAt';
@@ -76,10 +78,11 @@ function DateChip({
   );
 }
 
-export function BookCard({ book }: BookCardProps) {
+export function BookCard({ book, onStartReadingLayout }: BookCardProps) {
   const colors = useColors();
   const { moveBook, deleteBook, updateDates, updateComment } = useBooks();
   const scaleAnim = useRef(new Animated.Value(1)).current;
+  const startReadingBtnRef = useRef<React.ElementRef<typeof TouchableOpacity>>(null);
 
   const [editingField, setEditingField] = useState<EditingField | null>(null);
   const [commentVisible, setCommentVisible] = useState(false);
@@ -205,12 +208,25 @@ export function BookCard({ book }: BookCardProps) {
             <View style={styles.actionsRow}>
               {book.status === 'want-to-read' && (
                 <>
-                  <ActionButton
-                    icon="book-outline"
-                    label="Начать читать"
-                    color={colors.primary}
+                  {/* Inlined so we can attach a ref for tutorial measurement */}
+                  <TouchableOpacity
+                    ref={startReadingBtnRef}
+                    style={[styles.actionBtn, { borderColor: colors.primary }]}
                     onPress={() => handleMove('reading')}
-                  />
+                    onLayout={() => {
+                      startReadingBtnRef.current?.measure(
+                        (_x: number, _y: number, w: number, h: number, px: number, py: number) => {
+                          onStartReadingLayout?.({ x: px, y: py, width: w, height: h });
+                        },
+                      );
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Ionicons name="book-outline" size={16} color={colors.primary} />
+                    <Text style={[styles.actionBtnLabel, { color: colors.primary }]}>
+                      Начать читать
+                    </Text>
+                  </TouchableOpacity>
                   <ActionButton
                     icon="checkmark-circle-outline"
                     label="Уже прочитал"

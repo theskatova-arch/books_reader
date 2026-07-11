@@ -44,6 +44,9 @@ export default function WantToReadScreen() {
   const [burgerRect, setBurgerRect] = useState<SpotlightRect | null>(null);
   const headerMenuRef = useRef<HeaderMenuHandle>(null);
 
+  const { seen: startReadSeen, markSeen: markStartReadSeen } = useTutorialStep('room-start-reading');
+  const [startReadRect, setStartReadRect] = useState<SpotlightRect | null>(null);
+
   const list = books
     .filter((b) => b.status === 'want-to-read')
     .sort((a, b) => b.addedAt - a.addedAt);
@@ -128,7 +131,14 @@ export default function WantToReadScreen() {
       <FlatList
         data={displayList}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <BookCard book={item} />}
+        renderItem={({ item, index }) => (
+          <BookCard
+            book={item}
+            onStartReadingLayout={
+              index === 0 && startReadSeen === false ? setStartReadRect : undefined
+            }
+          />
+        )}
         contentContainerStyle={[
           styles.listContent,
           displayList.length === 0 && styles.centered,
@@ -183,6 +193,17 @@ export default function WantToReadScreen() {
         text="Ты можешь самостоятельно добавить книгу в свой список для чтения или выбрать из своего списка случайную и начать читать"
         onConfirm={() => { markTutorialSeen(); headerMenuRef.current?.openMenu(); }}
         onSkip={markTutorialSeen}
+      />
+
+      <TutorialSpotlight
+        visible={tutorialSeen !== false && startReadSeen === false && startReadRect !== null}
+        targetRect={startReadRect}
+        text={'Теперь переведи книгу в список "Читаю"'}
+        onConfirm={() => {
+          markStartReadSeen();
+          if (list[0]) moveBook(list[0].id, 'reading');
+        }}
+        onSkip={markStartReadSeen}
       />
     </View>
   );
