@@ -18,7 +18,6 @@ interface BooksContextType {
     author: string,
     status: BookStatus,
     coverUrl?: string,
-    genre?: string,
   ) => Promise<void>;
   moveBook: (id: string, newStatus: BookStatus) => Promise<void>;
   deleteBook: (id: string) => Promise<void>;
@@ -27,7 +26,6 @@ interface BooksContextType {
     fields: { startedReadingAt?: number; finishedAt?: number },
   ) => Promise<void>;
   updateComment: (id: string, comment: string | null) => Promise<void>;
-  updateGenre: (id: string, genre: string | null) => Promise<void>;
   isLoading: boolean;
   error: string | null;
   reload: () => Promise<void>;
@@ -66,7 +64,7 @@ export function BooksProvider({ children }: { children: React.ReactNode }) {
   }, [token, reload]);
 
   const addBook = useCallback(
-    async (title: string, author: string, status: BookStatus, coverUrl?: string, genre?: string) => {
+    async (title: string, author: string, status: BookStatus, coverUrl?: string) => {
       const now = Date.now();
       const book = await booksApi.create({
         title: title.trim(),
@@ -76,7 +74,6 @@ export function BooksProvider({ children }: { children: React.ReactNode }) {
         startedReadingAt: status === 'reading' ? now : undefined,
         finishedAt: status === 'read' ? now : undefined,
         coverUrl,
-        genre,
       });
       setBooks((prev) => [book, ...prev]);
     },
@@ -153,27 +150,6 @@ export function BooksProvider({ children }: { children: React.ReactNode }) {
     [books],
   );
 
-  const updateGenre = useCallback(
-    async (id: string, genre: string | null) => {
-      const current = books.find((b) => b.id === id);
-      if (!current) return;
-
-      setBooks((prev) =>
-        prev.map((b) =>
-          b.id === id ? { ...b, genre: genre ?? undefined } : b,
-        ),
-      );
-      try {
-        const updated = await booksApi.update(id, { genre });
-        setBooks((prev) => prev.map((b) => (b.id === id ? updated : b)));
-      } catch {
-        setBooks((prev) => prev.map((b) => (b.id === id ? current : b)));
-        throw new Error('Не удалось сохранить жанр');
-      }
-    },
-    [books],
-  );
-
   const updateComment = useCallback(
     async (id: string, comment: string | null) => {
       const current = books.find((b) => b.id === id);
@@ -198,7 +174,7 @@ export function BooksProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <BooksContext.Provider
-      value={{ books, addBook, moveBook, deleteBook, updateDates, updateComment, updateGenre, isLoading, error, reload }}
+      value={{ books, addBook, moveBook, deleteBook, updateDates, updateComment, isLoading, error, reload }}
     >
       {children}
     </BooksContext.Provider>

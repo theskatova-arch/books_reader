@@ -7,7 +7,6 @@ import {
   Modal,
   Platform,
   Pressable,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -19,7 +18,6 @@ import * as Haptics from 'expo-haptics';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 import { Book, BookStatus, useBooks } from '@/context/BooksContext';
-import { GENRES } from '@/constants/genres';
 
 interface AddBookModalProps {
   visible: boolean;
@@ -42,7 +40,6 @@ export function AddBookModal({
   const [mode, setMode] = useState<Mode>('manual');
   const [title, setTitle] = useState('');
   const [author, setAuthor] = useState('');
-  const [genre, setGenre] = useState<string | null>(null);
   const [titleError, setTitleError] = useState(false);
 
   const wantToReadBooks = books.filter((b) => b.status === 'want-to-read');
@@ -54,7 +51,6 @@ export function AddBookModal({
     if (visible) {
       setTitle('');
       setAuthor('');
-      setGenre(null);
       setTitleError(false);
       setMode('manual');
       Animated.spring(slideAnim, {
@@ -85,7 +81,7 @@ export function AddBookModal({
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    addBook(title.trim(), author.trim(), targetStatus, undefined, genre ?? undefined);
+    addBook(title.trim(), author.trim(), targetStatus);
     handleClose();
   };
 
@@ -227,46 +223,6 @@ export function AddBookModal({
                     returnKeyType="done"
                     onSubmitEditing={handleAdd}
                   />
-                  {/* Genre chips */}
-                  <View>
-                    <Text style={[styles.genreLabel, { color: colors.mutedForeground }]}>
-                      Жанр (необязательно)
-                    </Text>
-                    <ScrollView
-                      horizontal
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={styles.genreRow}
-                    >
-                      {GENRES.map((g) => {
-                        const active = genre === g;
-                        return (
-                          <TouchableOpacity
-                            key={g}
-                            style={[
-                              styles.genreChip,
-                              {
-                                borderColor: active ? colors.primary : colors.border,
-                                backgroundColor: active ? colors.primary : colors.background,
-                                borderRadius: colors.radius,
-                              },
-                            ]}
-                            onPress={() => setGenre(active ? null : g)}
-                            activeOpacity={0.75}
-                          >
-                            <Text
-                              style={[
-                                styles.genreChipLabel,
-                                { color: active ? colors.primaryForeground : colors.foreground },
-                              ]}
-                            >
-                              {g}
-                            </Text>
-                          </TouchableOpacity>
-                        );
-                      })}
-                    </ScrollView>
-                  </View>
-
                   <TouchableOpacity
                     style={[
                       styles.addButton,
@@ -410,25 +366,6 @@ const styles = StyleSheet.create({
   addButtonLabel: {
     fontSize: 16,
     fontFamily: 'Inter_600SemiBold',
-  },
-  genreLabel: {
-    fontSize: 12,
-    fontFamily: 'Inter_500Medium',
-    marginBottom: 8,
-  },
-  genreRow: {
-    flexDirection: 'row',
-    gap: 8,
-    paddingBottom: 2,
-  },
-  genreChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderWidth: 1,
-  },
-  genreChipLabel: {
-    fontSize: 13,
-    fontFamily: 'Inter_500Medium',
   },
   pickList: {
     maxHeight: 300,

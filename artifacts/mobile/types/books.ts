@@ -12,6 +12,4 @@ export interface Book {
   comment?: string;
   /** Cover image URL, when known (e.g. picked from the Library). */
   coverUrl?: string;
-  /** Optional genre tag (e.g. «Фантастика», «Детектив»). */
-  genre?: string;
 }

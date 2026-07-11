@@ -10,14 +10,6 @@
   "books": {
     "60e276b7-4943-44e9-a931-f50cfd0a9778": [
       {
-        "id": "c0445dd6-417c-4d62-aa97-8e00afcc64c3",
-        "title": "Шестерка воронов",
-        "author": "Leigh Bardugo",
-        "status": "want-to-read",
-        "addedAt": 1783742108470,
-        "coverUrl": "https://covers.openlibrary.org/b/id/12667417-M.jpg"
-      },
-      {
         "id": "36a203d0-71e7-4a38-83c1-ba14854bd5a7",
         "title": "Маленький принц",
         "author": "Antoine de Saint-Exupéry",

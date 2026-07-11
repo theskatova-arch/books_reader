@@ -15,7 +15,7 @@ router.get("/", (req, res) => {
 
 // POST /api/books — create a new book
 router.post("/", (req, res) => {
-  const { title, author, status, addedAt, startedReadingAt, finishedAt, coverUrl, genre } =
+  const { title, author, status, addedAt, startedReadingAt, finishedAt, coverUrl } =
     req.body as Partial<BookRecord>;
 
   if (!title || typeof title !== "string" || title.trim().length === 0) {
@@ -39,7 +39,6 @@ router.post("/", (req, res) => {
       typeof startedReadingAt === "number" ? startedReadingAt : undefined,
     finishedAt: typeof finishedAt === "number" ? finishedAt : undefined,
     coverUrl: typeof coverUrl === "string" && coverUrl.trim().length > 0 ? coverUrl.trim() : undefined,
-    genre: typeof genre === "string" && genre.trim().length > 0 ? genre.trim() : undefined,
   };
 
   const books = getBooks(req.user!.userId);
@@ -88,19 +87,6 @@ router.put("/:id", (req, res) => {
       updated.coverUrl = raw.trim();
     } else {
       res.status(400).json({ error: "Обложка должна быть строкой" });
-      return;
-    }
-  }
-
-  // Handle genre separately: null or empty string clears it; non-empty string is trimmed.
-  if ("genre" in updates) {
-    const raw = (updates as Partial<BookRecord & { genre: string | null }>).genre;
-    if (raw === null || raw === "" || raw === undefined) {
-      delete updated.genre;
-    } else if (typeof raw === "string") {
-      updated.genre = raw.trim();
-    } else {
-      res.status(400).json({ error: "Жанр должен быть строкой" });
       return;
     }
   }

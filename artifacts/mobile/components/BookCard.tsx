@@ -15,7 +15,6 @@ import { useColors } from '@/hooks/useColors';
 import { Book, BookStatus, useBooks } from '@/context/BooksContext';
 import { EditDateModal } from '@/components/EditDateModal';
 import { CommentModal } from '@/components/CommentModal';
-import { GenreModal } from '@/components/GenreModal';
 
 interface BookCardProps {
   book: Book;
@@ -79,12 +78,11 @@ function DateChip({
 
 export function BookCard({ book }: BookCardProps) {
   const colors = useColors();
-  const { moveBook, deleteBook, updateDates, updateComment, updateGenre } = useBooks();
+  const { moveBook, deleteBook, updateDates, updateComment } = useBooks();
   const scaleAnim = useRef(new Animated.Value(1)).current;
 
   const [editingField, setEditingField] = useState<EditingField | null>(null);
   const [commentVisible, setCommentVisible] = useState(false);
-  const [genreVisible, setGenreVisible] = useState(false);
 
   const handlePressIn = () => {
     Animated.spring(scaleAnim, { toValue: 0.97, useNativeDriver: true }).start();
@@ -122,11 +120,6 @@ export function BookCard({ book }: BookCardProps) {
   const handleCommentClear = () => {
     updateComment(book.id, null);
     setCommentVisible(false);
-  };
-
-  const handleGenreSave = (g: string | null) => {
-    updateGenre(book.id, g);
-    setGenreVisible(false);
   };
 
   const editingDate =
@@ -175,31 +168,6 @@ export function BookCard({ book }: BookCardProps) {
                   {book.author}
                 </Text>
               )}
-
-              {/* Genre chip — tappable to change */}
-              <TouchableOpacity
-                onPress={() => setGenreVisible(true)}
-                activeOpacity={0.7}
-                hitSlop={{ top: 4, bottom: 4 }}
-                style={styles.genreTouchable}
-              >
-                {book.genre ? (
-                  <View
-                    style={[
-                      styles.genreChip,
-                      { backgroundColor: colors.secondary, borderColor: colors.border },
-                    ]}
-                  >
-                    <Text style={[styles.genreText, { color: colors.primary }]}>
-                      {book.genre}
-                    </Text>
-                  </View>
-                ) : (
-                  <Text style={[styles.addGenreLabel, { color: colors.mutedForeground }]}>
-                    + жанр
-                  </Text>
-                )}
-              </TouchableOpacity>
             </View>
 
             <TouchableOpacity
@@ -325,13 +293,6 @@ export function BookCard({ book }: BookCardProps) {
         onClear={handleCommentClear}
         onCancel={() => setCommentVisible(false)}
       />
-
-      <GenreModal
-        visible={genreVisible}
-        currentGenre={book.genre}
-        onConfirm={handleGenreSave}
-        onCancel={() => setGenreVisible(false)}
-      />
     </>
   );
 }
@@ -374,24 +335,6 @@ const styles = StyleSheet.create({
   },
   author: {
     fontSize: 13,
-    fontFamily: 'Inter_400Regular',
-  },
-  genreTouchable: {
-    alignSelf: 'flex-start',
-    marginTop: 4,
-  },
-  genreChip: {
-    borderRadius: 6,
-    borderWidth: 1,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  genreText: {
-    fontSize: 11,
-    fontFamily: 'Inter_500Medium',
-  },
-  addGenreLabel: {
-    fontSize: 11,
     fontFamily: 'Inter_400Regular',
   },
   deleteBtn: {
