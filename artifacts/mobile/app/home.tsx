@@ -54,12 +54,22 @@ export default function HomeScreen() {
         <TouchableOpacity
           style={[styles.squareButton, styles.primaryButton]}
           activeOpacity={0.85}
-          onPress={() => router.push('/room')}
+          onPress={() => router.push('/shelf')}
         >
-          <Text style={styles.squareEmoji}>🛋️</Text>
-          <Text style={styles.primaryButtonLabel}>Моя комната</Text>
+          <Text style={styles.squareEmoji}>📚</Text>
+          <Text style={styles.primaryButtonLabel}>Полка</Text>
         </TouchableOpacity>
       </View>
+
+      <TouchableOpacity
+        style={[styles.roomButton, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}
+        activeOpacity={0.85}
+        onPress={() => router.push('/room')}
+      >
+        <Text style={styles.roomEmoji}>🛋️</Text>
+        <Text style={[styles.roomButtonLabel, { color: colors.foreground }]}>Моя комната</Text>
+        <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+      </TouchableOpacity>
 
       {/* Feed button */}
       <TouchableOpacity
@@ -182,6 +192,21 @@ function makeStyles(
       fontFamily: 'Inter_600SemiBold',
       color: colors.foreground,
       textAlign: 'center',
+    },
+    roomButton: {
+      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      borderWidth: 1,
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+    },
+    roomEmoji: { fontSize: 20 },
+    roomButtonLabel: {
+      flex: 1,
+      fontSize: 15,
+      fontFamily: 'Inter_500Medium',
     },
     feedButton: {
       width: '100%',
