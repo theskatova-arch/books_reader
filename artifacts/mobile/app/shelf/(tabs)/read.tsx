@@ -18,7 +18,6 @@ import { HeaderMenu, HeaderMenuHandle } from '@/components/HeaderMenu';
 import { TutorialSpotlight, SpotlightRect } from '@/components/TutorialSpotlight';
 import { useTutorialStep } from '@/hooks/useTutorialStep';
 import { SearchBar } from '@/components/SearchBar';
-import { BackToHomeButton } from '@/components/BackToHomeButton';
 
 const MONTHS_SHORT = [
   'Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн',
@@ -86,15 +85,12 @@ export default function ReadScreen() {
     );
   }, [list, searchQuery]);
 
-  const topPad = Platform.OS === 'web' ? 67 : insets.top;
-
   const filterLabel = filter
     ? `${MONTHS_SHORT[filter.month]} ${filter.year}`
     : null;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <BackToHomeButton topPad={topPad} />
       {/* Header */}
       <View
         style={[
@@ -128,7 +124,7 @@ export default function ReadScreen() {
           </TouchableOpacity>
           <HeaderMenu
             ref={readMenuRef}
-            topOffset={topPad + 114}
+            topOffset={114}
             onBurgerLayout={setReadBurgerRect}
             items={[
               {

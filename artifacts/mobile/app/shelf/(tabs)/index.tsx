@@ -19,7 +19,6 @@ import { AddBookModal } from '@/components/AddBookModal';
 import { RandomPickerModal } from '@/components/RandomPickerModal';
 import { HeaderMenu, HeaderMenuHandle } from '@/components/HeaderMenu';
 import { SearchBar } from '@/components/SearchBar';
-import { BackToHomeButton } from '@/components/BackToHomeButton';
 
 function pluralBooks(n: number): string {
   const mod10 = n % 10;
@@ -64,11 +63,8 @@ export default function WantToReadScreen() {
       })
     : list;
 
-  const topPad = Platform.OS === 'web' ? 67 : insets.top;
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <BackToHomeButton topPad={topPad} />
       <View
         style={[
           styles.header,
@@ -98,7 +94,7 @@ export default function WantToReadScreen() {
           </TouchableOpacity>
           <HeaderMenu
             ref={headerMenuRef}
-            topOffset={topPad + 114}
+            topOffset={114}
             onBurgerLayout={setBurgerRect}
             items={[
               {

@@ -14,7 +14,6 @@ import { useBooks } from '@/context/BooksContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
 import { HeaderMenu, HeaderMenuHandle } from '@/components/HeaderMenu';
-import { BackToHomeButton } from '@/components/BackToHomeButton';
 import { TutorialSpotlight, SpotlightRect } from '@/components/TutorialSpotlight';
 import { useTutorialStep } from '@/hooks/useTutorialStep';
 
@@ -42,11 +41,8 @@ export default function ReadingScreen() {
     .filter((b) => b.status === 'reading')
     .sort((a, b) => (b.startedReadingAt ?? b.addedAt) - (a.startedReadingAt ?? a.addedAt));
 
-  const topPad = Platform.OS === 'web' ? 67 : insets.top;
-
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <BackToHomeButton topPad={topPad} />
       <View
         style={[
           styles.header,
@@ -66,7 +62,7 @@ export default function ReadingScreen() {
           </Text>
         </View>
         <HeaderMenu
-          topOffset={topPad + 114}
+          topOffset={114}
           items={[
             {
               label: 'Добавить книгу',
