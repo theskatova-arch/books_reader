@@ -35,16 +35,7 @@ export default function ReadingScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View
-        style={[
-          styles.header,
-          { paddingTop: 8, borderBottomColor: colors.border, backgroundColor: colors.background },
-        ]}
-      >
-        <View>
-          <Text style={[styles.headerTitle, { color: colors.foreground }]}>Читаю сейчас</Text>
-          <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>{pluralBooks(list.length)}</Text>
-        </View>
+      <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.background }]}>
         <HeaderMenu
           topOffset={114}
           items={[{ label: 'Добавить книгу', icon: 'add-circle-outline', onPress: () => setModalVisible(true) }]}

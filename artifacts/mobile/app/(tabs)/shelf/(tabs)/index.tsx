@@ -51,16 +51,7 @@ export default function WantToReadScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View
-        style={[
-          styles.header,
-          { paddingTop: 8, borderBottomColor: colors.border, backgroundColor: colors.background },
-        ]}
-      >
-        <View>
-          <Text style={[styles.headerTitle, { color: colors.foreground }]}>Хочу прочитать</Text>
-          <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>{pluralBooks(list.length)}</Text>
-        </View>
+      <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.background }]}>
         <View style={styles.headerActions}>
           <TouchableOpacity
             style={[styles.iconBtn, { borderColor: colors.border }]}

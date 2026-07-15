@@ -74,18 +74,7 @@ export default function ReadScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      <View
-        style={[
-          styles.header,
-          { paddingTop: 8, borderBottomColor: colors.border, backgroundColor: colors.background },
-        ]}
-      >
-        <View style={styles.headerLeft}>
-          <Text style={[styles.headerTitle, { color: colors.foreground }]}>Прочитано</Text>
-          <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>
-            {filter ? `${pluralBooks(list.length)} за ${filterLabel}` : `${pluralBooks(list.length)} прочитано`}
-          </Text>
-        </View>
+      <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.background }]}>
         <View style={styles.headerRight}>
           <TouchableOpacity
             style={[styles.iconBtn, { borderColor: colors.border }]}
