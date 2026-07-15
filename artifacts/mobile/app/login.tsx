@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useRouter } from 'expo-router';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -21,6 +22,7 @@ export default function LoginScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { login, register } = useAuth();
+  const router = useRouter();
 
   const [mode, setMode] = useState<Mode>('login');
   const [username, setUsername] = useState('');
@@ -50,6 +52,7 @@ export default function LoginScreen() {
       } else {
         await login(u, password);
       }
+      router.replace('/home');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Что-то пошло не так');
     } finally {

@@ -11,6 +11,12 @@
       "username": "test",
       "hash": "0720181de200ae6f8cde6be5d420f3b866e61a522554d63da811894a6838518d3f2d128f299d51d1f323ef9e916e06d3dc0150f3a673085ec7e50fa0c970bf1c",
       "salt": "35e595429578b33e5a289b0cee638c46"
+    },
+    "3ce9ba86-54f4-4483-b931-c1fe58baafad": {
+      "id": "3ce9ba86-54f4-4483-b931-c1fe58baafad",
+      "username": "Skatova",
+      "hash": "24753946009b5bac8a777fc9d3080ffec839a88a5061d09713f0fc7f42b40401f895161e3f10c2228e2b285e33f6a0953073ba357570721ef0759f2e8e0d3772",
+      "salt": "d6d50e56e6c4680ae2c6c75defde5261"
     }
   },
   "books": {
@@ -42,6 +48,17 @@
         "finishedAt": 1783752064703
       }
     ],
-    "1a06f721-a6f7-4f99-aeee-0bf3460df014": []
+    "1a06f721-a6f7-4f99-aeee-0bf3460df014": [],
+    "3ce9ba86-54f4-4483-b931-c1fe58baafad": [
+      {
+        "id": "008152ac-fb55-4ed9-b337-a3acdcd52acd",
+        "title": "Танатонавты",
+        "author": "",
+        "status": "read",
+        "addedAt": 1784115846086,
+        "startedReadingAt": 1784115847453,
+        "finishedAt": 1784115849749
+      }
+    ]
   }
 }
