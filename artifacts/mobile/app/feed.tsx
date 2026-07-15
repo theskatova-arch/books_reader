@@ -227,69 +227,76 @@ function ReaderModal({
       animationType="slide"
       onRequestClose={onClose}
     >
-      <Pressable style={modalStyles.backdrop} onPress={onClose} />
-      <View style={[modalStyles.sheet, { backgroundColor: colors.card, paddingBottom: bottomInset + 16 }]}>
-        {/* Handle */}
-        <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
+      {/* full-screen container: backdrop behind, sheet at bottom */}
+      <View style={modalStyles.container}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={onClose} />
+        <View style={[modalStyles.sheet, { backgroundColor: colors.card, paddingBottom: bottomInset + 16 }]}>
+          {/* Handle */}
+          <View style={[modalStyles.handle, { backgroundColor: colors.border }]} />
 
-        {/* Header */}
-        <View style={[modalStyles.header, { borderBottomColor: colors.border }]}>
-          <View style={[modalStyles.avatar, { backgroundColor: colors.primary }]}>
-            <Text style={modalStyles.avatarText}>
-              {entry?.username.charAt(0).toUpperCase()}
-            </Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={[modalStyles.username, { color: colors.foreground }]}>{entry?.username}</Text>
-            <Text style={[modalStyles.subtitle, { color: colors.mutedForeground }]}>
-              {pluralBooks(entry?.books.length ?? 0)} на полке
-            </Text>
-          </View>
-          <TouchableOpacity onPress={onClose} hitSlop={12}>
-            <Ionicons name="close" size={22} color={colors.mutedForeground} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Book lists */}
-        <ScrollView
-          style={{ maxHeight: 460 }}
-          contentContainerStyle={modalStyles.content}
-          showsVerticalScrollIndicator={false}
-        >
-          {STATUS_ORDER.filter((s) => (grouped[s]?.length ?? 0) > 0).map((status) => (
-            <View key={status} style={modalStyles.section}>
-              <View style={[modalStyles.sectionBadge, { backgroundColor: STATUS_COLORS[status] + '22' }]}>
-                <Text style={[modalStyles.sectionLabel, { color: STATUS_COLORS[status] }]}>
-                  {STATUS_LABELS[status]}
-                </Text>
-                <Text style={[modalStyles.sectionCount, { color: STATUS_COLORS[status] }]}>
-                  {grouped[status]!.length}
-                </Text>
-              </View>
-              {grouped[status]!.map((book) => (
-                <BookRow
-                  key={book.id}
-                  book={book}
-                  colors={colors}
-                  onAdd={user ? () => handleAdd(book) : undefined}
-                  added={addedIds.has(book.id)}
-                />
-              ))}
+          {/* Header */}
+          <View style={[modalStyles.header, { borderBottomColor: colors.border }]}>
+            <View style={[modalStyles.avatar, { backgroundColor: colors.primary }]}>
+              <Text style={modalStyles.avatarText}>
+                {entry?.username.charAt(0).toUpperCase()}
+              </Text>
             </View>
-          ))}
-        </ScrollView>
+            <View style={{ flex: 1 }}>
+              <Text style={[modalStyles.username, { color: colors.foreground }]}>{entry?.username}</Text>
+              <Text style={[modalStyles.subtitle, { color: colors.mutedForeground }]}>
+                {pluralBooks(entry?.books.length ?? 0)} на полке
+              </Text>
+            </View>
+            <TouchableOpacity onPress={onClose} hitSlop={12}>
+              <Ionicons name="close" size={22} color={colors.mutedForeground} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Book lists */}
+          <ScrollView
+            contentContainerStyle={modalStyles.content}
+            showsVerticalScrollIndicator={false}
+          >
+            {STATUS_ORDER.filter((s) => (grouped[s]?.length ?? 0) > 0).map((status) => (
+              <View key={status} style={modalStyles.section}>
+                <View style={[modalStyles.sectionBadge, { backgroundColor: STATUS_COLORS[status] + '22' }]}>
+                  <Text style={[modalStyles.sectionLabel, { color: STATUS_COLORS[status] }]}>
+                    {STATUS_LABELS[status]}
+                  </Text>
+                  <Text style={[modalStyles.sectionCount, { color: STATUS_COLORS[status] }]}>
+                    {grouped[status]!.length}
+                  </Text>
+                </View>
+                {grouped[status]!.map((book) => (
+                  <BookRow
+                    key={book.id}
+                    book={book}
+                    colors={colors}
+                    onAdd={user ? () => handleAdd(book) : undefined}
+                    added={addedIds.has(book.id)}
+                  />
+                ))}
+              </View>
+            ))}
+          </ScrollView>
+        </View>
       </View>
     </Modal>
   );
 }
 
 const modalStyles = StyleSheet.create({
-  backdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.4)' },
+  container: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
   sheet: {
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingTop: 12,
     paddingHorizontal: 20,
+    maxHeight: '85%',
   },
   handle: {
     width: 36,

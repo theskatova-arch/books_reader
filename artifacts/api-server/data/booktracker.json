@@ -51,6 +51,22 @@
     "1a06f721-a6f7-4f99-aeee-0bf3460df014": [],
     "3ce9ba86-54f4-4483-b931-c1fe58baafad": [
       {
+        "id": "40c35fbc-fb15-44c7-8ef2-626b6a420914",
+        "title": "Шестерка воронов",
+        "author": "Лі Бардуґо",
+        "status": "want-to-read",
+        "addedAt": 1784119872649,
+        "coverUrl": "https://covers.openlibrary.org/b/id/12667417-M.jpg"
+      },
+      {
+        "id": "b3265d0d-732f-48e4-86f3-b135022c9766",
+        "title": "Время библиомантов",
+        "author": "Kai Meyer",
+        "status": "want-to-read",
+        "addedAt": 1784119871433,
+        "coverUrl": "https://covers.openlibrary.org/b/id/8739260-M.jpg"
+      },
+      {
         "id": "6371e75d-a73e-4cd6-b1b1-a40e8422d16d",
         "title": "Время секонд хэнд",
         "author": "Светлана Алексиевич",
