@@ -51,6 +51,29 @@
     "1a06f721-a6f7-4f99-aeee-0bf3460df014": [],
     "3ce9ba86-54f4-4483-b931-c1fe58baafad": [
       {
+        "id": "6371e75d-a73e-4cd6-b1b1-a40e8422d16d",
+        "title": "Время секонд хэнд",
+        "author": "Светлана Алексиевич",
+        "status": "want-to-read",
+        "addedAt": 1784119352049,
+        "coverUrl": "https://covers.openlibrary.org/b/id/14341222-M.jpg"
+      },
+      {
+        "id": "923f2956-3468-4ad6-8e5f-8b29e77159f1",
+        "title": "Цветы зла",
+        "author": "Шарль Бодлер",
+        "status": "want-to-read",
+        "addedAt": 1784119333642
+      },
+      {
+        "id": "1f141dc4-31a5-476e-bb8c-58a82ff5c591",
+        "title": "Одно лето",
+        "author": "Nora Roberts",
+        "status": "want-to-read",
+        "addedAt": 1784119304265,
+        "coverUrl": "https://covers.openlibrary.org/b/id/6461131-M.jpg"
+      },
+      {
         "id": "008152ac-fb55-4ed9-b337-a3acdcd52acd",
         "title": "Танатонавты",
         "author": "",
