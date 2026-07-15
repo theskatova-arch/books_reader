@@ -74,7 +74,7 @@ export default function ReadScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.background }]}>
-        <View style={styles.headerRight}>
+        <View style={[styles.headerRight, { marginTop: 10 }]}>
           <TouchableOpacity
             style={[styles.iconBtn, { borderColor: colors.border }]}
             onPress={() => setSearchVisible(true)}

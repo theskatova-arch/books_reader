@@ -36,7 +36,7 @@ export default function ReadingScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.background }]}>
-        <View style={styles.headerActions}>
+        <View style={[styles.headerActions, { marginTop: 10 }]}>
           <TouchableOpacity
             style={[styles.iconBtn, { borderColor: colors.border }]}
             onPress={() => setModalVisible(true)}
