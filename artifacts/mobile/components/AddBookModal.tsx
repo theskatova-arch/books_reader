@@ -115,9 +115,7 @@ export function AddBookModal({
     if (Platform.OS !== 'web') {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }
-    const coverUrl = book.coverId
-      ? `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`
-      : undefined;
+    const coverUrl = book.coverUrl ?? undefined;
     addBook(book.title, book.author, targetStatus, coverUrl);
     onSuccess?.();
     handleClose();
@@ -307,11 +305,9 @@ export function AddBookModal({
                                 onPress={() => handleSuggestionSelect(item)}
                                 activeOpacity={0.7}
                               >
-                                {item.coverId ? (
+                                {item.coverUrl ? (
                                   <Image
-                                    source={{
-                                      uri: `https://covers.openlibrary.org/b/id/${item.coverId}-S.jpg`,
-                                    }}
+                                    source={{ uri: item.coverUrl }}
                                     style={[
                                       styles.suggestionCover,
                                       { backgroundColor: colors.secondary },

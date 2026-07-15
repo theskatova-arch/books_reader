@@ -1,41 +1,37 @@
+/**
+ * Google Books typeahead suggestions.
+ * Replaces the former Open Library suggestions hook.
+ * Export names are kept identical.
+ */
 import { useEffect, useRef, useState } from 'react';
-import { resolveCyrillicAuthor } from '@/hooks/useOpenLibraryBooks';
-
-interface EditionDoc {
-  title?: string;
-}
-
-interface SuggestionDoc {
-  key: string;
-  title: string;
-  author_name?: string[];
-  author_alternative_name?: string[];
-  cover_i?: number;
-  editions?: { docs: EditionDoc[] };
-}
 
 export interface BookSuggestion {
-  key: string;
+  key: string;        // Google Books volumeId
   title: string;
   author: string;
-  coverId: number | null;
+  coverUrl: string | null;
 }
 
-const EDITIONS_PARAMS = 'editions.language=rus&editions.limit=1';
-const FIELDS =
-  'key,title,author_name,author_alternative_name,cover_i,editions';
+interface VolumeInfo {
+  title?: string;
+  authors?: string[];
+  imageLinks?: { smallThumbnail?: string; thumbnail?: string };
+}
 
-function resolveTitle(doc: SuggestionDoc): string {
-  return doc.editions?.docs?.[0]?.title ?? doc.title;
+interface Volume {
+  id: string;
+  volumeInfo: VolumeInfo;
+}
+
+function coverUrl(info: VolumeInfo): string | null {
+  const raw = info.imageLinks?.smallThumbnail ?? info.imageLinks?.thumbnail;
+  if (!raw) return null;
+  return raw.replace(/^http:/, 'https:');
 }
 
 /**
- * Searches Open Library as the user types, returning up to 8 suggestions.
- * Debounces 350 ms and cancels stale requests. No language filter so any
- * book (Russian, English, etc.) can be found and added to the shelf.
- * Titles use the Russian edition title when available; author names use a
- * Cyrillic alternative when OL provides one.
- * Results are suppressed when query is shorter than 2 characters.
+ * Searches Google Books as the user types, returning up to 8 suggestions.
+ * Debounces 350 ms and cancels stale requests.
  */
 export function useOpenLibrarySuggestions(query: string) {
   const trimmed = query.trim();
@@ -45,11 +41,9 @@ export function useOpenLibrarySuggestions(query: string) {
   const abortRef = useRef<AbortController | null>(null);
   const isMounted = useRef(true);
 
-  useEffect(() => {
-    return () => {
-      isMounted.current = false;
-      abortRef.current?.abort();
-    };
+  useEffect(() => () => {
+    isMounted.current = false;
+    abortRef.current?.abort();
   }, []);
 
   useEffect(() => {
@@ -67,20 +61,21 @@ export function useOpenLibrarySuggestions(query: string) {
       setLoading(true);
 
       try {
+        const q = encodeURIComponent(trimmed);
         const url =
-          `https://openlibrary.org/search.json` +
-          `?q=${encodeURIComponent(trimmed)}` +
-          `&fields=${FIELDS}&${EDITIONS_PARAMS}&limit=8`;
+          `https://www.googleapis.com/books/v1/volumes` +
+          `?q=${q}&langRestrict=ru&maxResults=8&printType=books`;
         const res = await fetch(url, { signal: controller.signal });
-        if (!res.ok) throw new Error(`OL ${res.status}`);
-        const data: { docs: SuggestionDoc[] } = await res.json();
+        if (!res.ok) throw new Error(`Google Books ${res.status}`);
+        const data = (await res.json()) as { items?: Volume[] };
         if (!isMounted.current || controller.signal.aborted) return;
+
         setBooks(
-          data.docs.map((doc) => ({
-            key: doc.key,
-            title: resolveTitle(doc),
-            author: resolveCyrillicAuthor(doc.author_name, doc.author_alternative_name),
-            coverId: doc.cover_i ?? null,
+          (data.items ?? []).map((v) => ({
+            key: v.id,
+            title: v.volumeInfo.title ?? '—',
+            author: v.volumeInfo.authors?.[0] ?? '',
+            coverUrl: coverUrl(v.volumeInfo),
           })),
         );
       } catch (e) {
