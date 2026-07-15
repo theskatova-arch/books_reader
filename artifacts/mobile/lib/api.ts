@@ -1,5 +1,10 @@
-const BASE_URL =
-  (process.env.EXPO_PUBLIC_API_URL ?? '').replace(/\/$/, '') || 'http://localhost:3000';
+// On web (Replit preview) the API server is reachable at the same origin
+// under /api — no cross-origin request needed.
+// On native (APK) we use the deployed production URL from the env var.
+const BASE_URL: string = (() => {
+  if (typeof window !== 'undefined' && typeof document !== 'undefined') return '';
+  return (process.env.EXPO_PUBLIC_API_URL ?? '').replace(/\/$/, '');
+})();
 
 interface RequestOptions extends Omit<RequestInit, 'headers'> {
   token?: string | null;
