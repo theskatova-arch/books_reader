@@ -4,15 +4,43 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
+import { useAuth } from '@/context/AuthContext';
 
 export default function HomeScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { user, logout } = useAuth();
   const styles = makeStyles(colors, insets.top, insets.bottom);
 
   return (
     <View style={styles.root}>
+      {/* Auth bar */}
+      <View style={styles.authBar}>
+        {user ? (
+          <View style={styles.authBarInner}>
+            <View style={[styles.authAvatar, { backgroundColor: colors.primary }]}>
+              <Text style={styles.authAvatarText}>{user.username.charAt(0).toUpperCase()}</Text>
+            </View>
+            <Text style={[styles.authUsername, { color: colors.foreground }]} numberOfLines={1}>
+              {user.username}
+            </Text>
+            <TouchableOpacity onPress={logout} hitSlop={8}>
+              <Ionicons name="log-out-outline" size={20} color={colors.mutedForeground} />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={[styles.loginBtn, { borderColor: colors.border, borderRadius: colors.radius }]}
+            onPress={() => router.push('/login')}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="person-outline" size={16} color={colors.primary} />
+            <Text style={[styles.loginBtnLabel, { color: colors.primary }]}>Войти / Регистрация</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
       <View style={styles.mainRow}>
         <TouchableOpacity
           style={[styles.squareButton, styles.secondaryButton]}
@@ -32,6 +60,17 @@ export default function HomeScreen() {
           <Text style={styles.primaryButtonLabel}>Моя комната</Text>
         </TouchableOpacity>
       </View>
+
+      {/* Feed button */}
+      <TouchableOpacity
+        style={[styles.feedButton, { backgroundColor: colors.card, borderColor: colors.border, borderRadius: colors.radius }]}
+        activeOpacity={0.85}
+        onPress={() => router.push('/feed')}
+      >
+        <Ionicons name="people-outline" size={20} color={colors.primary} />
+        <Text style={[styles.feedButtonLabel, { color: colors.foreground }]}>Лента читателей</Text>
+        <Ionicons name="chevron-forward" size={16} color={colors.mutedForeground} />
+      </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.promoCard}
@@ -69,9 +108,48 @@ function makeStyles(
       justifyContent: 'center',
       alignItems: 'center',
       paddingHorizontal: 24,
-      paddingTop: topInset + 24,
+      paddingTop: topInset + 16,
       paddingBottom: bottomInset + 32,
       gap: 16,
+    },
+    authBar: {
+      width: '100%',
+      alignItems: 'flex-end',
+    },
+    authBarInner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
+      maxWidth: '100%',
+    },
+    authAvatar: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    authAvatarText: {
+      fontSize: 13,
+      fontFamily: 'Inter_700Bold',
+      color: '#fff',
+    },
+    authUsername: {
+      fontSize: 14,
+      fontFamily: 'Inter_500Medium',
+      flexShrink: 1,
+    },
+    loginBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      borderWidth: 1,
+      paddingVertical: 7,
+      paddingHorizontal: 14,
+    },
+    loginBtnLabel: {
+      fontSize: 13,
+      fontFamily: 'Inter_500Medium',
     },
     mainRow: {
       flexDirection: 'row',
@@ -86,12 +164,8 @@ function makeStyles(
       justifyContent: 'center',
       gap: 10,
     },
-    squareEmoji: {
-      fontSize: 36,
-    },
-    primaryButton: {
-      backgroundColor: colors.primary,
-    },
+    squareEmoji: { fontSize: 36 },
+    primaryButton: { backgroundColor: colors.primary },
     primaryButtonLabel: {
       fontSize: 15,
       fontFamily: 'Inter_600SemiBold',
@@ -108,6 +182,20 @@ function makeStyles(
       fontFamily: 'Inter_600SemiBold',
       color: colors.foreground,
       textAlign: 'center',
+    },
+    feedButton: {
+      width: '100%',
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 10,
+      borderWidth: 1,
+      paddingVertical: 14,
+      paddingHorizontal: 16,
+    },
+    feedButtonLabel: {
+      flex: 1,
+      fontSize: 15,
+      fontFamily: 'Inter_500Medium',
     },
     supportButton: {
       backgroundColor: 'transparent',
@@ -130,9 +218,7 @@ function makeStyles(
       paddingHorizontal: 16,
       gap: 10,
     },
-    promoIcon: {
-      marginTop: 1,
-    },
+    promoIcon: { marginTop: 1 },
     promoText: {
       flex: 1,
       fontSize: 14,

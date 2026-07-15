@@ -75,3 +75,17 @@ export function saveBooks(userId: string, books: BookRecord[]): void {
   data.books[userId] = books;
   save(data);
 }
+
+export interface PublicUserEntry {
+  username: string;
+  books: BookRecord[];
+}
+
+/** Returns every user's public shelf (all statuses) for the feed. */
+export function getAllUsersWithBooks(): PublicUserEntry[] {
+  const data = load();
+  return Object.values(data.users).map((user) => ({
+    username: user.username,
+    books: (data.books[user.id] ?? []),
+  }));
+}

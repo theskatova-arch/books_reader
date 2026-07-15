@@ -6,33 +6,31 @@ import React, {
   useState,
 } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { authApi, setAuthToken } from '@/lib/api';
+import { apiJSON } from '@/lib/api';
 
-const TOKEN_KEY = '@booktracker_auth_token';
-const USERNAME_KEY = '@booktracker_auth_username';
+const TOKEN_KEY = '@auth:token';
+const USERNAME_KEY = '@auth:username';
 
-interface AuthState {
-  token: string | null;
-  username: string | null;
-  isLoading: boolean;
+export interface AuthUser {
+  username: string;
+  token: string;
 }
 
-interface AuthContextType extends AuthState {
+interface AuthContextType {
+  user: AuthUser | null;
+  isLoading: boolean;
   login: (username: string, password: string) => Promise<void>;
   register: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | null>(null);
+export const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AuthState>({
-    token: null,
-    username: null,
-    isLoading: true,
-  });
+  const [user, setUser] = useState<AuthUser | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Restore persisted session on mount
+  // Restore session on mount
   useEffect(() => {
     (async () => {
       try {
@@ -40,54 +38,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           AsyncStorage.getItem(TOKEN_KEY),
           AsyncStorage.getItem(USERNAME_KEY),
         ]);
-        if (token && username) {
-          setAuthToken(token);
-          setState({ token, username, isLoading: false });
-        } else {
-          setState((s) => ({ ...s, isLoading: false }));
-        }
-      } catch {
-        setState((s) => ({ ...s, isLoading: false }));
+        if (token && username) setUser({ token, username });
+      } finally {
+        setIsLoading(false);
       }
     })();
   }, []);
 
-  const persist = useCallback(async (token: string, username: string) => {
+  const saveSession = useCallback(async (token: string, username: string) => {
     await Promise.all([
       AsyncStorage.setItem(TOKEN_KEY, token),
       AsyncStorage.setItem(USERNAME_KEY, username),
     ]);
-    setAuthToken(token);
-    setState({ token, username, isLoading: false });
+    setUser({ token, username });
   }, []);
 
-  const login = useCallback(
-    async (username: string, password: string) => {
-      const res = await authApi.login(username, password);
-      await persist(res.token, res.username);
-    },
-    [persist],
-  );
+  const login = useCallback(async (username: string, password: string) => {
+    const data = await apiJSON<{ token: string; username: string }>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    });
+    await saveSession(data.token, data.username);
+  }, [saveSession]);
 
-  const register = useCallback(
-    async (username: string, password: string) => {
-      const res = await authApi.register(username, password);
-      await persist(res.token, res.username);
-    },
-    [persist],
-  );
+  const register = useCallback(async (username: string, password: string) => {
+    const data = await apiJSON<{ token: string; username: string }>('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify({ username, password }),
+    });
+    await saveSession(data.token, data.username);
+  }, [saveSession]);
 
   const logout = useCallback(async () => {
     await Promise.all([
       AsyncStorage.removeItem(TOKEN_KEY),
       AsyncStorage.removeItem(USERNAME_KEY),
     ]);
-    setAuthToken(null);
-    setState({ token: null, username: null, isLoading: false });
+    setUser(null);
   }, []);
 
   return (
-    <AuthContext.Provider value={{ ...state, login, register, logout }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );

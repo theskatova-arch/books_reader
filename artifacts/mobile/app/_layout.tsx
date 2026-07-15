@@ -12,6 +12,7 @@ import {
 } from '@expo-google-fonts/inter';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { AuthProvider } from '@/context/AuthContext';
 import { BooksProvider } from '@/context/BooksContext';
 
 SplashScreen.preventAutoHideAsync();
@@ -37,15 +38,18 @@ export default function RootLayout() {
       <ErrorBoundary>
         <GestureHandlerRootView>
           <KeyboardProvider>
-            <BooksProvider>
-              <Stack screenOptions={{ headerShown: false }}>
-                <Stack.Screen name="index" />
-                <Stack.Screen name="home" />
-                <Stack.Screen name="room/(tabs)" />
-                <Stack.Screen name="library" />
-                <Stack.Screen name="login" redirect />
-              </Stack>
-            </BooksProvider>
+            <AuthProvider>
+              <BooksProvider>
+                <Stack screenOptions={{ headerShown: false }}>
+                  <Stack.Screen name="index" />
+                  <Stack.Screen name="home" />
+                  <Stack.Screen name="room/(tabs)" />
+                  <Stack.Screen name="library" />
+                  <Stack.Screen name="login" />
+                  <Stack.Screen name="feed" />
+                </Stack>
+              </BooksProvider>
+            </AuthProvider>
           </KeyboardProvider>
         </GestureHandlerRootView>
       </ErrorBoundary>
