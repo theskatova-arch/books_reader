@@ -12,10 +12,14 @@ import * as Haptics from 'expo-haptics';
 import { useColors } from '@/hooks/useColors';
 import { Book, useBooks } from '@/context/BooksContext';
 import { EditDateModal } from '@/components/EditDateModal';
+import { StarRating } from '@/components/StarRating';
+import { AuthContext } from '@/context/AuthContext';
 
 export function ReadingBookCard({ book }: { book: Book }) {
   const colors = useColors();
-  const { moveBook, deleteBook, updateDates } = useBooks();
+  const { moveBook, deleteBook, updateDates, updateRating } = useBooks();
+  const auth = React.useContext(AuthContext);
+  const isAuthed = auth?.user != null;
   const [editingDate, setEditingDate] = useState(false);
 
   const handleFinish = () => {
@@ -98,6 +102,14 @@ export function ReadingBookCard({ book }: { book: Book }) {
               </Text>
               <Ionicons name="pencil-outline" size={11} color={colors.mutedForeground} style={{ marginTop: 1 }} />
             </TouchableOpacity>
+          )}
+
+          {isAuthed && (
+            <StarRating
+              value={book.rating}
+              onChange={(r) => updateRating(book.id, r === 0 ? null : r)}
+              size={20}
+            />
           )}
 
           <TouchableOpacity

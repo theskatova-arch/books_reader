@@ -45,6 +45,7 @@ interface BooksContextType {
   deleteBook: (id: string) => Promise<void>;
   updateDates: (id: string, fields: { startedReadingAt?: number; finishedAt?: number }) => Promise<void>;
   updateComment: (id: string, comment: string | null) => Promise<void>;
+  updateRating: (id: string, rating: number | null) => Promise<void>;
   isLoading: boolean;
   error: string | null;
   reload: () => Promise<void>;
@@ -253,9 +254,29 @@ export function BooksProvider({ children }: { children: React.ReactNode }) {
     [token, books],
   );
 
+  const updateRating = useCallback(
+    async (id: string, rating: number | null) => {
+      if (token) {
+        const updated = await apiJSON<Book>(`/api/books/${id}`, {
+          method: 'PUT',
+          token,
+          body: JSON.stringify({ rating }),
+        });
+        setBooks((prev) => prev.map((b) => (b.id === id ? updated : b)));
+      } else {
+        const next = books.map((b) =>
+          b.id === id ? { ...b, rating: rating ?? undefined } : b,
+        );
+        setBooks(next);
+        await saveLocal(next);
+      }
+    },
+    [token, books],
+  );
+
   return (
     <BooksContext.Provider
-      value={{ books, addBook, moveBook, deleteBook, updateDates, updateComment, isLoading, error, reload }}
+      value={{ books, addBook, moveBook, deleteBook, updateDates, updateComment, updateRating, isLoading, error, reload }}
     >
       {children}
     </BooksContext.Provider>

@@ -22,6 +22,7 @@ export interface BookRecord {
   finishedAt?: number;
   comment?: string;
   coverUrl?: string;
+  rating?: number;
 }
 
 interface DataStore {

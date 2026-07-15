@@ -91,6 +91,19 @@ router.put("/:id", (req, res) => {
     }
   }
 
+  // Handle rating: null/undefined clears it; 1-5 accepted; anything else rejected.
+  if ("rating" in updates) {
+    const raw = (updates as Partial<BookRecord & { rating: number | null }>).rating;
+    if (raw === null || raw === undefined) {
+      delete updated.rating;
+    } else if (typeof raw === "number" && raw >= 1 && raw <= 5 && Number.isInteger(raw)) {
+      updated.rating = raw;
+    } else {
+      res.status(400).json({ error: "Рейтинг должен быть целым числом от 1 до 5" });
+      return;
+    }
+  }
+
   // Handle comment separately: null or empty string clears it; otherwise validate and trim.
   if ("comment" in updates) {
     const raw = updates.comment;

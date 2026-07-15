@@ -15,6 +15,8 @@ import { useColors } from '@/hooks/useColors';
 import { Book, BookStatus, useBooks } from '@/context/BooksContext';
 import { EditDateModal } from '@/components/EditDateModal';
 import { CommentModal } from '@/components/CommentModal';
+import { StarRating } from '@/components/StarRating';
+import { AuthContext } from '@/context/AuthContext';
 
 interface BookCardProps {
   book: Book;
@@ -78,7 +80,9 @@ function DateChip({
 
 export function BookCard({ book }: BookCardProps) {
   const colors = useColors();
-  const { moveBook, deleteBook, updateDates, updateComment } = useBooks();
+  const { moveBook, deleteBook, updateDates, updateComment, updateRating } = useBooks();
+  const auth = React.useContext(AuthContext);
+  const isAuthed = auth?.user != null;
   const scaleAnim = useRef(new Animated.Value(1)).current;
   const [editingField, setEditingField] = useState<EditingField | null>(null);
   const [commentVisible, setCommentVisible] = useState(false);
@@ -166,6 +170,13 @@ export function BookCard({ book }: BookCardProps) {
                 >
                   {book.author}
                 </Text>
+              )}
+              {isAuthed && (
+                <StarRating
+                  value={book.rating}
+                  onChange={(r) => updateRating(book.id, r === 0 ? null : r)}
+                  size={18}
+                />
               )}
             </View>
 

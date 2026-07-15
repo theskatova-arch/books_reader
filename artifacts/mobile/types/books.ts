@@ -12,4 +12,6 @@ export interface Book {
   comment?: string;
   /** Cover image URL, when known (e.g. picked from the Library). */
   coverUrl?: string;
+  /** Personal rating 1-5, set by the authenticated user. */
+  rating?: number | null;
 }
