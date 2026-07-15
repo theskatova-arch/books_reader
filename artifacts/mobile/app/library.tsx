@@ -75,7 +75,9 @@ export default function LibraryScreen() {
 
   const handleAddToWantToRead = async (book: OpenLibraryBook): Promise<boolean> => {
     try {
-      const coverUrl = book.coverUrl ?? undefined;
+      const coverUrl = book.coverId
+        ? `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`
+        : undefined;
       await addBook(book.title, book.author, 'want-to-read', coverUrl);
       setAddedKeys((prev) => {
         const next = new Set(prev);

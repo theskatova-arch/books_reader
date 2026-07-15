@@ -18,7 +18,9 @@ export function LibraryBookCard({ book, added, onAdd }: LibraryBookCardProps) {
   const [saving, setSaving] = useState(false);
   const [failed, setFailed] = useState(false);
 
-  const coverUri = book.coverUrl ?? null;
+  const coverUri = book.coverId
+    ? `https://covers.openlibrary.org/b/id/${book.coverId}-M.jpg`
+    : null;
 
   const handleAdd = async () => {
     if (added || saving) return;
