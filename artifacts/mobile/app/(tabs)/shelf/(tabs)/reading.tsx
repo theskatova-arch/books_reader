@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useState } from 'react';
 import {
   FlatList,
   Platform,
@@ -6,16 +6,13 @@ import {
   Text,
   View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 import { useBooks } from '@/context/BooksContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
-import { HeaderMenu, HeaderMenuHandle } from '@/components/HeaderMenu';
-import { TutorialSpotlight, SpotlightRect } from '@/components/TutorialSpotlight';
-import { useTutorialStep } from '@/hooks/useTutorialStep';
+import { HeaderMenu } from '@/components/HeaderMenu';
 
 function pluralBooks(n: number): string {
   const mod10 = n % 10;
@@ -29,13 +26,8 @@ function pluralBooks(n: number): string {
 export default function ReadingScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
-  const { books, moveBook } = useBooks();
-  const router = useRouter();
+  const { books } = useBooks();
   const [modalVisible, setModalVisible] = useState(false);
-
-  const { seen: startReadSeen } = useTutorialStep('room-start-reading');
-  const { seen: finishReadSeen, markSeen: markFinishReadSeen } = useTutorialStep('room-finish-reading');
-  const [finishReadRect, setFinishReadRect] = useState<SpotlightRect | null>(null);
 
   const list = books
     .filter((b) => b.status === 'reading')
@@ -46,46 +38,23 @@ export default function ReadingScreen() {
       <View
         style={[
           styles.header,
-          {
-            paddingTop: 8,
-            borderBottomColor: colors.border,
-            backgroundColor: colors.background,
-          },
+          { paddingTop: 8, borderBottomColor: colors.border, backgroundColor: colors.background },
         ]}
       >
         <View>
-          <Text style={[styles.headerTitle, { color: colors.foreground }]}>
-            Читаю сейчас
-          </Text>
-          <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>
-            {pluralBooks(list.length)}
-          </Text>
+          <Text style={[styles.headerTitle, { color: colors.foreground }]}>Читаю сейчас</Text>
+          <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>{pluralBooks(list.length)}</Text>
         </View>
         <HeaderMenu
           topOffset={114}
-          items={[
-            {
-              label: 'Добавить книгу',
-              icon: 'add-circle-outline',
-              onPress: () => setModalVisible(true),
-            },
-          ]}
+          items={[{ label: 'Добавить книгу', icon: 'add-circle-outline', onPress: () => setModalVisible(true) }]}
         />
       </View>
 
       <FlatList
         data={list}
         keyExtractor={(item) => item.id}
-        renderItem={({ item, index }) => (
-          <BookCard
-            book={item}
-            onFinishReadingLayout={
-              index === 0 && finishReadSeen === false
-                ? setFinishReadRect
-                : undefined
-            }
-          />
-        )}
+        renderItem={({ item }) => <BookCard book={item} />}
         contentContainerStyle={[
           styles.listContent,
           list.length === 0 && styles.centered,
@@ -95,47 +64,20 @@ export default function ReadingScreen() {
         scrollEnabled={list.length > 0}
         ListEmptyComponent={
           <View style={styles.emptyState}>
-            <Ionicons
-              name="book-outline"
-              size={52}
-              color={colors.mutedForeground}
-            />
-            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
-              Ничего не читается
-            </Text>
-            <Text
-              style={[styles.emptySubtitle, { color: colors.mutedForeground }]}
-            >
-              Начните книгу из списка или добавьте новую
-            </Text>
+            <Ionicons name="book-outline" size={52} color={colors.mutedForeground} />
+            <Text style={[styles.emptyTitle, { color: colors.foreground }]}>Ничего не читается</Text>
+            <Text style={[styles.emptySubtitle, { color: colors.mutedForeground }]}>Начните книгу из списка или добавьте новую</Text>
           </View>
         }
       />
 
-      <AddBookModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        targetStatus="reading"
-      />
-
-      <TutorialSpotlight
-        visible={startReadSeen === true && finishReadSeen === false && finishReadRect !== null}
-        targetRect={finishReadRect}
-        text={"Когда закончишь читать книгу, переведи ее в список «Прочитано»"}
-        onConfirm={() => {
-          markFinishReadSeen();
-          if (list[0]) moveBook(list[0].id, 'read');
-        }}
-        onSkip={markFinishReadSeen}
-      />
+      <AddBookModal visible={modalVisible} onClose={() => setModalVisible(false)} targetStatus="reading" />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -144,38 +86,11 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  headerTitle: {
-    fontSize: 26,
-    fontFamily: 'Inter_700Bold',
-    lineHeight: 32,
-  },
-  headerSub: {
-    fontSize: 13,
-    fontFamily: 'Inter_400Regular',
-    marginTop: 2,
-  },
-  listContent: {
-    paddingTop: 12,
-  },
-  centered: {
-    flex: 1,
-  },
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    paddingTop: 80,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter_600SemiBold',
-    marginTop: 8,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-    textAlign: 'center',
-    paddingHorizontal: 32,
-  },
+  headerTitle: { fontSize: 26, fontFamily: 'Inter_700Bold', lineHeight: 32 },
+  headerSub: { fontSize: 13, fontFamily: 'Inter_400Regular', marginTop: 2 },
+  listContent: { paddingTop: 12 },
+  centered: { flex: 1 },
+  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, paddingTop: 80 },
+  emptyTitle: { fontSize: 18, fontFamily: 'Inter_600SemiBold', marginTop: 8 },
+  emptySubtitle: { fontSize: 14, fontFamily: 'Inter_400Regular', textAlign: 'center', paddingHorizontal: 32 },
 });

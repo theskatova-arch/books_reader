@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   FlatList,
   Platform,
@@ -14,15 +14,10 @@ import { useBooks } from '@/context/BooksContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
 import { MonthYearPickerModal } from '@/components/MonthYearPickerModal';
-import { HeaderMenu, HeaderMenuHandle } from '@/components/HeaderMenu';
-import { TutorialSpotlight, SpotlightRect } from '@/components/TutorialSpotlight';
-import { useTutorialStep } from '@/hooks/useTutorialStep';
+import { HeaderMenu } from '@/components/HeaderMenu';
 import { SearchBar } from '@/components/SearchBar';
 
-const MONTHS_SHORT = [
-  'Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн',
-  'Июл', 'Авг', 'Сен', 'Окт', 'Ноя', 'Дек',
-];
+const MONTHS_SHORT = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
 
 function pluralBooks(n: number): string {
   const mod10 = n % 10;
@@ -33,20 +28,12 @@ function pluralBooks(n: number): string {
   return `${n} книг`;
 }
 
-interface ActiveFilter {
-  month: number; // 0-based
-  year: number;
-}
+interface ActiveFilter { month: number; year: number; }
 
 export default function ReadScreen() {
   const colors = useColors();
   const insets = useSafeAreaInsets();
   const { books } = useBooks();
-
-  const { seen: finishReadSeen } = useTutorialStep('room-finish-reading');
-  const { seen: readBurgerSeen, markSeen: markReadBurgerSeen } = useTutorialStep('room-read-burger');
-  const [readBurgerRect, setReadBurgerRect] = useState<SpotlightRect | null>(null);
-  const readMenuRef = useRef<HeaderMenuHandle>(null);
 
   const [modalVisible, setModalVisible] = useState(false);
   const [pickerVisible, setPickerVisible] = useState(false);
@@ -79,40 +66,26 @@ export default function ReadScreen() {
     if (!searchQuery.trim()) return list;
     const q = searchQuery.toLowerCase();
     return list.filter(
-      (b) =>
-        b.title.toLowerCase().includes(q) ||
-        (b.author?.toLowerCase().includes(q) ?? false)
+      (b) => b.title.toLowerCase().includes(q) || (b.author?.toLowerCase().includes(q) ?? false)
     );
   }, [list, searchQuery]);
 
-  const filterLabel = filter
-    ? `${MONTHS_SHORT[filter.month]} ${filter.year}`
-    : null;
+  const filterLabel = filter ? `${MONTHS_SHORT[filter.month]} ${filter.year}` : null;
 
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
-      {/* Header */}
       <View
         style={[
           styles.header,
-          {
-            paddingTop: 8,
-            borderBottomColor: colors.border,
-            backgroundColor: colors.background,
-          },
+          { paddingTop: 8, borderBottomColor: colors.border, backgroundColor: colors.background },
         ]}
       >
         <View style={styles.headerLeft}>
-          <Text style={[styles.headerTitle, { color: colors.foreground }]}>
-            Прочитано
-          </Text>
+          <Text style={[styles.headerTitle, { color: colors.foreground }]}>Прочитано</Text>
           <Text style={[styles.headerSub, { color: colors.mutedForeground }]}>
-            {filter
-              ? `${pluralBooks(list.length)} за ${filterLabel}`
-              : `${pluralBooks(list.length)} прочитано`}
+            {filter ? `${pluralBooks(list.length)} за ${filterLabel}` : `${pluralBooks(list.length)} прочитано`}
           </Text>
         </View>
-
         <View style={styles.headerRight}>
           <TouchableOpacity
             style={[styles.iconBtn, { borderColor: colors.border }]}
@@ -123,20 +96,10 @@ export default function ReadScreen() {
             <Ionicons name="search-outline" size={20} color={colors.foreground} />
           </TouchableOpacity>
           <HeaderMenu
-            ref={readMenuRef}
             topOffset={114}
-            onBurgerLayout={setReadBurgerRect}
             items={[
-              {
-                label: 'Добавить книгу',
-                icon: 'add-circle-outline',
-                onPress: () => setModalVisible(true),
-              },
-              {
-                label: filter ? `Фильтр: ${filterLabel}` : 'Фильтр',
-                icon: filter ? 'funnel' : 'funnel-outline',
-                onPress: () => setPickerVisible(true),
-              },
+              { label: 'Добавить книгу', icon: 'add-circle-outline', onPress: () => setModalVisible(true) },
+              { label: filter ? `Фильтр: ${filterLabel}` : 'Фильтр', icon: filter ? 'funnel' : 'funnel-outline', onPress: () => setPickerVisible(true) },
             ]}
           />
         </View>
@@ -165,20 +128,12 @@ export default function ReadScreen() {
           searchQuery.trim() ? (
             <View style={styles.emptyState}>
               <Ionicons name="search-outline" size={52} color={colors.mutedForeground} />
-              <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
-                Ничего не найдено
-              </Text>
-              <Text style={[styles.emptySubtitle, { color: colors.mutedForeground }]}>
-                Попробуйте другой запрос
-              </Text>
+              <Text style={[styles.emptyTitle, { color: colors.foreground }]}>Ничего не найдено</Text>
+              <Text style={[styles.emptySubtitle, { color: colors.mutedForeground }]}>Попробуйте другой запрос</Text>
             </View>
           ) : (
             <View style={styles.emptyState}>
-              <Ionicons
-                name={filter ? 'funnel-outline' : 'checkmark-circle-outline'}
-                size={52}
-                color={colors.mutedForeground}
-              />
+              <Ionicons name={filter ? 'funnel-outline' : 'checkmark-circle-outline'} size={52} color={colors.mutedForeground} />
               <Text style={[styles.emptyTitle, { color: colors.foreground }]}>
                 {filter ? `Нет книг за ${filterLabel}` : 'Нет прочитанных книг'}
               </Text>
@@ -191,9 +146,7 @@ export default function ReadScreen() {
                   onPress={() => setFilter(null)}
                   activeOpacity={0.7}
                 >
-                  <Text style={[styles.clearBtnLabel, { color: colors.foreground }]}>
-                    Сбросить фильтр
-                  </Text>
+                  <Text style={[styles.clearBtnLabel, { color: colors.foreground }]}>Сбросить фильтр</Text>
                 </TouchableOpacity>
               )}
             </View>
@@ -201,34 +154,16 @@ export default function ReadScreen() {
         }
       />
 
-      <AddBookModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        targetStatus="read"
-      />
+      <AddBookModal visible={modalVisible} onClose={() => setModalVisible(false)} targetStatus="read" />
 
       <MonthYearPickerModal
         visible={pickerVisible}
         initialMonth={filter?.month ?? null}
         initialYear={filter?.year ?? null}
         availableYears={availableYears}
-        onConfirm={(month, year) => {
-          setFilter({ month, year });
-          setPickerVisible(false);
-        }}
-        onClear={() => {
-          setFilter(null);
-          setPickerVisible(false);
-        }}
+        onConfirm={(month, year) => { setFilter({ month, year }); setPickerVisible(false); }}
+        onClear={() => { setFilter(null); setPickerVisible(false); }}
         onCancel={() => setPickerVisible(false)}
-      />
-
-      <TutorialSpotlight
-        visible={finishReadSeen === true && readBurgerSeen === false && readBurgerRect !== null}
-        targetRect={readBurgerRect}
-        text="Ты можешь отфильтровать книги по дате завершения чтения и узнать, сколько прочитал за год!"
-        onConfirm={() => { markReadBurgerSeen(); readMenuRef.current?.openMenu(); }}
-        onSkip={markReadBurgerSeen}
       />
     </View>
   );
@@ -237,86 +172,19 @@ export default function ReadScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingBottom: 14,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingBottom: 14, borderBottomWidth: StyleSheet.hairlineWidth,
   },
   headerLeft: { flex: 1 },
-  headerTitle: {
-    fontSize: 26,
-    fontFamily: 'Inter_700Bold',
-    lineHeight: 32,
-  },
-  headerSub: {
-    fontSize: 13,
-    fontFamily: 'Inter_400Regular',
-    marginTop: 2,
-  },
-  headerRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  filterBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 5,
-    height: 36,
-    paddingHorizontal: 12,
-    borderRadius: 18,
-    borderWidth: 1,
-  },
-  filterBtnLabel: {
-    fontSize: 13,
-    fontFamily: 'Inter_500Medium',
-  },
-  iconBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  addBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  headerTitle: { fontSize: 26, fontFamily: 'Inter_700Bold', lineHeight: 32 },
+  headerSub: { fontSize: 13, fontFamily: 'Inter_400Regular', marginTop: 2 },
+  headerRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  iconBtn: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   listContent: { paddingTop: 12 },
   centered: { flex: 1 },
-  emptyState: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
-    paddingTop: 80,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontFamily: 'Inter_600SemiBold',
-    marginTop: 8,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    fontFamily: 'Inter_400Regular',
-    textAlign: 'center',
-    paddingHorizontal: 32,
-  },
-  clearBtn: {
-    marginTop: 8,
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingVertical: 7,
-    paddingHorizontal: 20,
-  },
-  clearBtnLabel: {
-    fontSize: 14,
-    fontFamily: 'Inter_500Medium',
-  },
+  emptyState: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 10, paddingTop: 80 },
+  emptyTitle: { fontSize: 18, fontFamily: 'Inter_600SemiBold', marginTop: 8 },
+  emptySubtitle: { fontSize: 14, fontFamily: 'Inter_400Regular', textAlign: 'center', paddingHorizontal: 32 },
+  clearBtn: { marginTop: 8, borderWidth: 1, borderRadius: 20, paddingVertical: 7, paddingHorizontal: 20 },
+  clearBtnLabel: { fontSize: 14, fontFamily: 'Inter_500Medium' },
 });
