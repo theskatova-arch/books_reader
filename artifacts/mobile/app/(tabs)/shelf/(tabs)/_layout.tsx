@@ -12,7 +12,7 @@ const TABS = [
 
 function isActive(pathname: string, href: string) {
   if (href === '/shelf') return pathname === '/shelf' || pathname === '/shelf/index';
-  return pathname.startsWith(href);
+  return pathname === href || pathname.startsWith(href + '/');
 }
 
 export default function ShelfLayout() {
