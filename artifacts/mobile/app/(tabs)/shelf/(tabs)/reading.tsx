@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
 import { useBooks } from '@/context/BooksContext';
-import { BookCard } from '@/components/BookCard';
+import { ReadingBookCard } from '@/components/ReadingBookCard';
 import { AddBookModal } from '@/components/AddBookModal';
 
 function pluralBooks(n: number): string {
@@ -51,7 +51,7 @@ export default function ReadingScreen() {
       <FlatList
         data={list}
         keyExtractor={(item) => item.id}
-        renderItem={({ item }) => <BookCard book={item} />}
+        renderItem={({ item }) => <ReadingBookCard book={item} />}
         contentContainerStyle={[
           styles.listContent,
           list.length === 0 && styles.centered,
