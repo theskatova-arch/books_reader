@@ -14,7 +14,6 @@ import { useBooks } from '@/context/BooksContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
 import { MonthYearPickerModal } from '@/components/MonthYearPickerModal';
-import { HeaderMenu } from '@/components/HeaderMenu';
 import { SearchBar } from '@/components/SearchBar';
 
 const MONTHS_SHORT = ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'];
@@ -84,13 +83,22 @@ export default function ReadScreen() {
           >
             <Ionicons name="search-outline" size={20} color={colors.foreground} />
           </TouchableOpacity>
-          <HeaderMenu
-            topOffset={114}
-            items={[
-              { label: 'Добавить книгу', icon: 'add-circle-outline', onPress: () => setModalVisible(true) },
-              { label: filter ? `Фильтр: ${filterLabel}` : 'Фильтр', icon: filter ? 'funnel' : 'funnel-outline', onPress: () => setPickerVisible(true) },
-            ]}
-          />
+          <TouchableOpacity
+            style={[styles.iconBtn, { borderColor: colors.border }]}
+            onPress={() => setPickerVisible(true)}
+            activeOpacity={0.75}
+            hitSlop={8}
+          >
+            <Ionicons name={filter ? 'funnel' : 'funnel-outline'} size={20} color={filter ? colors.primary : colors.foreground} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.iconBtn, { borderColor: colors.border }]}
+            onPress={() => setModalVisible(true)}
+            activeOpacity={0.75}
+            hitSlop={8}
+          >
+            <Ionicons name="add" size={22} color={colors.foreground} />
+          </TouchableOpacity>
         </View>
       </View>
 

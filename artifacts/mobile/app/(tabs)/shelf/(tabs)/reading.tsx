@@ -12,7 +12,6 @@ import { useColors } from '@/hooks/useColors';
 import { useBooks } from '@/context/BooksContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
-import { HeaderMenu } from '@/components/HeaderMenu';
 
 function pluralBooks(n: number): string {
   const mod10 = n % 10;
@@ -36,10 +35,16 @@ export default function ReadingScreen() {
   return (
     <View style={[styles.container, { backgroundColor: colors.background }]}>
       <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.background }]}>
-        <HeaderMenu
-          topOffset={114}
-          items={[{ label: 'Добавить книгу', icon: 'add-circle-outline', onPress: () => setModalVisible(true) }]}
-        />
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={[styles.iconBtn, { borderColor: colors.border }]}
+            onPress={() => setModalVisible(true)}
+            activeOpacity={0.75}
+            hitSlop={8}
+          >
+            <Ionicons name="add" size={22} color={colors.foreground} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <FlatList

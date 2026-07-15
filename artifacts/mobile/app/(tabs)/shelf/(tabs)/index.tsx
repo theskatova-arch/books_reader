@@ -14,7 +14,6 @@ import { useBooks } from '@/context/BooksContext';
 import { BookCard } from '@/components/BookCard';
 import { AddBookModal } from '@/components/AddBookModal';
 import { RandomPickerModal } from '@/components/RandomPickerModal';
-import { HeaderMenu } from '@/components/HeaderMenu';
 import { SearchBar } from '@/components/SearchBar';
 
 function pluralBooks(n: number): string {
@@ -61,13 +60,24 @@ export default function WantToReadScreen() {
           >
             <Ionicons name="search-outline" size={20} color={colors.foreground} />
           </TouchableOpacity>
-          <HeaderMenu
-            topOffset={114}
-            items={[
-              { label: 'Добавить книгу', icon: 'add-circle-outline', onPress: () => setModalVisible(true) },
-              { label: 'Случайная книга', icon: 'shuffle', onPress: () => setPickerVisible(true), hidden: list.length === 0 },
-            ]}
-          />
+          {list.length > 0 && (
+            <TouchableOpacity
+              style={[styles.iconBtn, { borderColor: colors.border }]}
+              onPress={() => setPickerVisible(true)}
+              activeOpacity={0.75}
+              hitSlop={8}
+            >
+              <Ionicons name="shuffle" size={20} color={colors.foreground} />
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            style={[styles.iconBtn, { borderColor: colors.border }]}
+            onPress={() => setModalVisible(true)}
+            activeOpacity={0.75}
+            hitSlop={8}
+          >
+            <Ionicons name="add" size={22} color={colors.foreground} />
+          </TouchableOpacity>
         </View>
       </View>
 
