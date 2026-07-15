@@ -19,6 +19,8 @@ import { useColors } from '@/hooks/useColors';
 import { BackToHomeButton } from '@/components/BackToHomeButton';
 import { apiJSON } from '@/lib/api';
 import type { BookStatus } from '@/types/books';
+import { useBooks } from '@/context/BooksContext';
+import { useAuth } from '@/context/AuthContext';
 
 interface FeedBook {
   id: string;
@@ -57,7 +59,17 @@ function pluralBooks(n: number) {
 
 // ─── Book row inside the modal ────────────────────────────────────────────────
 
-function BookRow({ book, colors }: { book: FeedBook; colors: ReturnType<typeof useColors> }) {
+function BookRow({
+  book,
+  colors,
+  onAdd,
+  added,
+}: {
+  book: FeedBook;
+  colors: ReturnType<typeof useColors>;
+  onAdd?: () => void;
+  added?: boolean;
+}) {
   return (
     <View style={[rowStyles.row, { borderBottomColor: colors.border }]}>
       {book.coverUrl ? (
@@ -77,6 +89,23 @@ function BookRow({ book, colors }: { book: FeedBook; colors: ReturnType<typeof u
           </Text>
         ) : null}
       </View>
+      {onAdd && (
+        <TouchableOpacity
+          style={[
+            rowStyles.addBtn,
+            { backgroundColor: added ? colors.secondary : colors.primary, borderRadius: 16 },
+          ]}
+          onPress={added ? undefined : onAdd}
+          activeOpacity={added ? 1 : 0.7}
+          hitSlop={8}
+        >
+          <Ionicons
+            name={added ? 'checkmark' : 'add'}
+            size={18}
+            color={added ? colors.mutedForeground : '#fff'}
+          />
+        </TouchableOpacity>
+      )}
     </View>
   );
 }
@@ -95,6 +124,7 @@ const rowStyles = StyleSheet.create({
   info: { flex: 1, gap: 3 },
   title: { fontSize: 14, fontFamily: 'Inter_600SemiBold', lineHeight: 18 },
   author: { fontSize: 12, fontFamily: 'Inter_400Regular' },
+  addBtn: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
 });
 
 // ─── Reader card (collapsed) ──────────────────────────────────────────────────
@@ -166,6 +196,24 @@ function ReaderModal({
   colors: ReturnType<typeof useColors>;
   bottomInset: number;
 }) {
+  const { user } = useAuth();
+  const { addBook } = useBooks();
+  // ids of books added this session
+  const [addedIds, setAddedIds] = useState<Set<string>>(new Set());
+
+  // reset when modal closes
+  useEffect(() => { if (!visible) setAddedIds(new Set()); }, [visible]);
+
+  const handleAdd = useCallback(async (book: FeedBook) => {
+    setAddedIds((prev) => new Set(prev).add(book.id));
+    try {
+      await addBook(book.title, book.author ?? '', 'want-to-read', book.coverUrl);
+    } catch {
+      // revert on failure
+      setAddedIds((prev) => { const s = new Set(prev); s.delete(book.id); return s; });
+    }
+  }, [addBook]);
+
   const grouped = (entry?.books ?? [])
     .reduce<Partial<Record<BookStatus, FeedBook[]>>>((acc, b) => {
       (acc[b.status] ??= []).push(b);
@@ -219,7 +267,13 @@ function ReaderModal({
                 </Text>
               </View>
               {grouped[status]!.map((book) => (
-                <BookRow key={book.id} book={book} colors={colors} />
+                <BookRow
+                  key={book.id}
+                  book={book}
+                  colors={colors}
+                  onAdd={user ? () => handleAdd(book) : undefined}
+                  added={addedIds.has(book.id)}
+                />
               ))}
             </View>
           ))}
