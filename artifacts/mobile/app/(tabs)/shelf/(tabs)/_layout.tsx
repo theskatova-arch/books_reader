@@ -25,7 +25,7 @@ export default function ShelfLayout() {
   return (
     <View style={[styles.root, { backgroundColor: colors.background, paddingTop: topPad }]}>
       {/* Top tab bar */}
-      <View style={[styles.tabBar, { borderBottomColor: colors.border, backgroundColor: colors.background }]}>
+      <View style={[styles.tabBar, { backgroundColor: colors.background }]}>
         {TABS.map((tab) => {
           const active = isActive(pathname, tab.href);
           return (
@@ -35,10 +35,13 @@ export default function ShelfLayout() {
               activeOpacity={0.7}
               onPress={() => router.navigate(tab.href)}
             >
-              <Text style={[styles.tabLabel, { color: active ? colors.primary : colors.mutedForeground }]}>
+              <Text style={[
+                styles.tabLabel,
+                { color: active ? colors.primary : colors.mutedForeground },
+                active && styles.tabLabelActive,
+              ]}>
                 {tab.label}
               </Text>
-              {active && <View style={[styles.indicator, { backgroundColor: colors.primary }]} />}
             </TouchableOpacity>
           );
         })}
@@ -54,7 +57,6 @@ const styles = StyleSheet.create({
   root: { flex: 1 },
   tabBar: {
     flexDirection: 'row',
-    borderBottomWidth: StyleSheet.hairlineWidth,
   },
   tab: {
     flex: 1,
@@ -63,14 +65,10 @@ const styles = StyleSheet.create({
   },
   tabLabel: {
     fontSize: 13,
-    fontFamily: 'Inter_500Medium',
+    fontFamily: 'Inter_400Regular',
   },
-  indicator: {
-    position: 'absolute',
-    bottom: 0,
-    left: 8,
-    right: 8,
-    height: 2,
-    borderRadius: 1,
+  tabLabelActive: {
+    fontSize: 15,
+    fontFamily: 'Inter_600SemiBold',
   },
 });
