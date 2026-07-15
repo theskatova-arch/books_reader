@@ -41,13 +41,9 @@ export default function RootLayout() {
             <AuthProvider>
               <BooksProvider>
                 <Stack screenOptions={{ headerShown: false }}>
-                  <Stack.Screen name="index" />
-                  <Stack.Screen name="home" />
-                  <Stack.Screen name="room" />
-                  <Stack.Screen name="shelf/(tabs)" />
-                  <Stack.Screen name="library" />
+                  <Stack.Screen name="(tabs)" />
                   <Stack.Screen name="login" />
-                  <Stack.Screen name="feed" />
+                  <Stack.Screen name="index" />
                 </Stack>
               </BooksProvider>
             </AuthProvider>

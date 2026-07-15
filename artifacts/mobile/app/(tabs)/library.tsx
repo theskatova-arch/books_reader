@@ -21,7 +21,6 @@ import { useBooks } from '@/context/BooksContext';
 import { LibraryBookCard } from '@/components/LibraryBookCard';
 import { LibraryRandomPickerModal } from '@/components/LibraryRandomPickerModal';
 import { LibrarySearchModal } from '@/components/LibrarySearchModal';
-import { BackToHomeButton } from '@/components/BackToHomeButton';
 import { LIBRARY_GENRES } from '@/constants/libraryGenres';
 import { TutorialSpotlight, SpotlightRect } from '@/components/TutorialSpotlight';
 import { useTutorialStep } from '@/hooks/useTutorialStep';
@@ -112,13 +111,11 @@ export default function LibraryScreen() {
 
   return (
     <View style={styles.root}>
-      <BackToHomeButton topPad={topPad} />
-
       <View
         style={[
           styles.header,
           {
-            paddingTop: 8,
+            paddingTop: topPad + 8,
             borderBottomColor: colors.border,
             backgroundColor: colors.background,
           },

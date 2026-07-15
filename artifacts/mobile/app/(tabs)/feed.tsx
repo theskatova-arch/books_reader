@@ -16,7 +16,6 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
-import { BackToHomeButton } from '@/components/BackToHomeButton';
 import { apiJSON } from '@/lib/api';
 import type { BookStatus } from '@/types/books';
 import { useBooks } from '@/context/BooksContext';
@@ -367,9 +366,7 @@ export default function FeedScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <BackToHomeButton topPad={topPad} />
-
-      <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.background }]}>
+      <View style={[styles.header, { borderBottomColor: colors.border, backgroundColor: colors.background, paddingTop: topPad + 8 }]}>
         <Text style={[styles.headerTitle, { color: colors.foreground }]}>Лента читателей</Text>
       </View>
 

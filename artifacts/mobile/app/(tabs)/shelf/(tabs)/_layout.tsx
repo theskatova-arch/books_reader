@@ -3,7 +3,6 @@ import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native
 import { Slot, usePathname, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors } from '@/hooks/useColors';
-import { BackToHomeButton } from '@/components/BackToHomeButton';
 
 const TABS = [
   { label: 'Хочу прочитать', href: '/shelf' },
@@ -24,9 +23,7 @@ export default function ShelfLayout() {
   const topPad = Platform.OS === 'web' ? 67 : insets.top;
 
   return (
-    <View style={[styles.root, { backgroundColor: colors.background }]}>
-      <BackToHomeButton topPad={topPad} />
-
+    <View style={[styles.root, { backgroundColor: colors.background, paddingTop: topPad }]}>
       {/* Top tab bar */}
       <View style={[styles.tabBar, { borderBottomColor: colors.border, backgroundColor: colors.background }]}>
         {TABS.map((tab) => {

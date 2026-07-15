@@ -24,7 +24,7 @@ export function BackToHomeButton({ topPad }: { topPad: number }) {
         style={styles.button}
         activeOpacity={0.7}
         hitSlop={8}
-        onPress={() => router.replace('/home')}
+        onPress={() => router.replace('/library')}
       >
         <Ionicons name="chevron-back" size={20} color={colors.foreground} />
         <Text style={[styles.label, { color: colors.foreground }]}>

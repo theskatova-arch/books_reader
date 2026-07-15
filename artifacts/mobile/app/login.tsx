@@ -52,7 +52,7 @@ export default function LoginScreen() {
       } else {
         await login(u, password);
       }
-      router.replace('/home');
+      router.replace('/library');
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Что-то пошло не так');
     } finally {
