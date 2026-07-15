@@ -69,9 +69,10 @@
         "id": "1f141dc4-31a5-476e-bb8c-58a82ff5c591",
         "title": "Одно лето",
         "author": "Nora Roberts",
-        "status": "want-to-read",
+        "status": "reading",
         "addedAt": 1784119304265,
-        "coverUrl": "https://covers.openlibrary.org/b/id/6461131-M.jpg"
+        "coverUrl": "https://covers.openlibrary.org/b/id/6461131-M.jpg",
+        "startedReadingAt": 1784124381900
       },
       {
         "id": "008152ac-fb55-4ed9-b337-a3acdcd52acd",

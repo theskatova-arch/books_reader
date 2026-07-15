@@ -169,7 +169,7 @@ export default function ReadScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
-    flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between',
+    flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'flex-end',
     paddingHorizontal: 20, paddingBottom: 14, borderBottomWidth: StyleSheet.hairlineWidth,
   },
   headerLeft: { flex: 1 },
