@@ -13,14 +13,23 @@ export async function apiRequest(path: string, options: RequestOptions = {}): Pr
     ...headers,
     ...(token ? { Authorization: `Bearer ${token}` } : {}),
   };
-  return fetch(`${BASE_URL}${path}`, { ...rest, headers: allHeaders });
+  try {
+    return await fetch(`${BASE_URL}${path}`, { ...rest, headers: allHeaders });
+  } catch {
+    throw new Error('Нет соединения с сервером. Проверьте интернет и попробуйте ещё раз.');
+  }
 }
 
 export async function apiJSON<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const res = await apiRequest(path, options);
-  const body = await res.json() as T & { error?: string };
+  let body: T & { error?: string };
+  try {
+    body = await res.json() as T & { error?: string };
+  } catch {
+    throw new Error(`Ошибка сервера (${res.status})`);
+  }
   if (!res.ok) {
-    throw new Error((body as { error?: string }).error ?? `HTTP ${res.status}`);
+    throw new Error(body.error ?? `Ошибка сервера (${res.status})`);
   }
   return body;
 }
