@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "00693e60-2800-46b0-bdfb-876a74c2f8e0"
+      }
+    },
+    "android": {
+      "package": "com.skatova.workspace"
+    }
+  }
+}
