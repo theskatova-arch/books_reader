@@ -1,0 +1,22 @@
+★ eas-cli@21.0.2 is now available.
+To upgrade, run:
+npm install -g eas-cli
+Proceeding with outdated version.
+
+- Fetching the build…\ Fetching the build…| Fetching the build…/ Fetching the build…✔ Found a matching build for the project @skatova/workspace
+
+ID                       a2e15210-977b-429e-8d60-7872c7c32820
+Platform                 Android
+Status                   errored
+Profile                  preview
+Distribution             internal
+SDK Version              51.0.0
+Version                  1.0.0
+Version code             1
+Commit                   5387ed69699566d131d573cc484f85a1f2cffa93
+Logs                     https://expo.dev/accounts/skatova/projects/workspace/builds/a2e15210-977b-429e-8d60-7872c7c32820
+Application Archive URL  null
+Build Artifacts URL      null
+Started at               21.07.2026, 23:07:52
+Finished at              22.07.2026, 04:01:19
+Started by               skatova
